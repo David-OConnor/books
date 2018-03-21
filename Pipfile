@@ -12,6 +12,7 @@ djangorestframework = "*"
 dj-database-url = "*"
 "psycopg2" = "*"
 ipython = "*"
+django-cors-headers = "*"
 
 
 [dev-packages]

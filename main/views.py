@@ -58,3 +58,7 @@ def api_root(request, format=None):
         'users': reverse('user-list', request=request, format=format),
         'snippets': reverse('book-list', request=request, format=format)
     })
+
+
+def search(request):
+    pass

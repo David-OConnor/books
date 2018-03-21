@@ -1417,6 +1417,16 @@ function verifyPlainObject(value, displayName, methodName) {
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -1430,27 +1440,106 @@ var React = __webpack_require__(1);
 var ReactDOM = __webpack_require__(20);
 var react_redux_1 = __webpack_require__(21);
 var redux_1 = __webpack_require__(11);
+var SearchForm = (function (_super) {
+    __extends(SearchForm, _super);
+    function SearchForm(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = { value: '' };
+        _this.handleChange = _this.handleChange.bind(_this);
+        return _this;
+    }
+    SearchForm.prototype.handleChange = function (event) {
+        this.setState({ value: event.target.value });
+    };
+    SearchForm.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("form", { style: {} },
+            React.createElement("label", null,
+                "Search by title, author, or ISBN:",
+                React.createElement("input", { type: "text", name: "search", onChange: this.handleChange })),
+            React.createElement("button", { type: "button", value: "Submit", onClick: function () { return search(_this.state.value); } }, "Search")));
+    };
+    return SearchForm;
+}(React.Component));
 var Book = function (_a) {
     var book = _a.book;
-    return (React.createElement("h4", null,
-        book.title,
-        ", written by: ",
-        book.author));
+    return (React.createElement("div", null,
+        React.createElement("h4", null,
+            book.title,
+            ", written by: ",
+            book.author),
+        React.createElement("div", { style: { float: 'left', width: 300, height: 100, background: 'teal' } },
+            React.createElement("a", { href: book.wikipedia_url }, "Wikipedia")),
+        React.createElement("div", { style: { float: 'left', width: 300, height: 100, background: 'salmon' } })));
 };
 var Main = function (_a) {
     var store = _a.store;
-    console.log("TEST");
     return (React.createElement("div", null,
-        React.createElement("h1", null, "Hello World!"),
-        store.main.books.map(function (b) { return React.createElement(Book, { book: b }); })));
+        React.createElement("h1", null, "Find free digital books"),
+        React.createElement(SearchForm, null),
+        gstore.getState().books.map(function (b) { return React.createElement(Book, { key: b.id, book: b }); })));
 };
+function get(url, callback) {
+    if (callback === void 0) { callback = function () { return null; }; }
+    var getCookie = null;
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Basic ' + btoa('admin:okokokok'),
+        },
+    })
+        .then(function (result) {
+        try {
+            return result.json();
+        }
+        catch (e) {
+            return result;
+        }
+    })
+        .then(callback);
+}
+function post(url, data, callback) {
+    if (callback === void 0) { callback = function () { return null; }; }
+    var getCookie = null;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Accept": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+    })
+        .then(function (result) {
+        try {
+            return result.json();
+        }
+        catch (e) {
+            return result;
+        }
+    })
+        .then(callback);
+}
+function search(query) {
+    var data = {
+        query: query,
+    };
+    var success = function (response) {
+        console.log("success:", response);
+    };
+    post('http://127.0.0.1:8000/main/search', data, success);
+}
 var initialState = {
-    page: 'main',
+    page: 'front',
     books: [
         {
             title: "Snow Clash",
             author: "Asimov",
-            id: 0,
+            id: -99,
+            wikipedia_url: 'http://wiki.org',
+            gutenberg_url: '',
+            adelaide_url: 'http://australia',
             isbn_10: "asdf",
             isbn_13: "kkkk",
         }
@@ -1460,18 +1549,23 @@ var mainReducer = function (state, action) {
     if (state === void 0) { state = initialState; }
     switch (action.type) {
         case 'changePage':
-            return __assign({}, state, { page: action.Page });
+            return __assign({}, state, { page: action.page });
+        case 'addBooks':
+            return __assign({}, state, { books: state.books.concat(action.books) });
         default:
             return state;
     }
 };
-var reducer = redux_1.combineReducers({
-    main: mainReducer,
-});
-var store = redux_1.createStore(reducer);
+var gstore = redux_1.createStore(mainReducer);
 var mapStateToProps = function (state) { return ({ store: state }); };
 var Connected = react_redux_1.connect(mapStateToProps)(Main);
-ReactDOM.render(React.createElement(react_redux_1.Provider, { store: store },
+get('http://127.0.0.1:8000/main/books', function (resp) {
+    gstore.dispatch({
+        type: 'addBooks',
+        books: resp
+    });
+});
+ReactDOM.render(React.createElement(react_redux_1.Provider, { store: gstore },
     React.createElement(Connected, null)), document.getElementById('react'));
 
 
