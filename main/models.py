@@ -44,7 +44,7 @@ class Book(models.Model):
 
     wikipedia_url = models.CharField(max_length=50, blank=True, null=True)
     amazon_url = models.CharField(max_length=50, blank=True, null=True)
-    gutenburg_url = models.CharField(max_length=50, blank=True, null=True)
+    gutenberg_url = models.CharField(max_length=50, blank=True, null=True)
     adelaide_url = models.CharField(max_length=50, blank=True, null=True)
 
     copyright_exp_us = models.DateField(null=True)

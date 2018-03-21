@@ -7,7 +7,7 @@ import {createStore, Store, combineReducers} from 'redux'
 import * as _ from 'lodash'
 
 
-interface Book {
+interface Book_ {
     id: number
     title: string
     author: string
@@ -17,16 +17,17 @@ interface Book {
 }
 
 
-const Book = ({book}: {book: Book}) => (
-    <h1>{book.title}, written by: {book.author}</h1>
+const Book = ({book}: {book: Book_}) => (
+    <h4>{book.title}, written by: {book.author}</h4>
 )
 
-// todo find out what type to use for store, reducers etc.
-const Main = ({store}: {store: any}) => {
 
+// todo figure out what type the store is.
+const Main = ({store}: {store: any}) => {
+    console.log("TEST")
     return (
         <div>
-            <h1>Hello World</h1>
+            <h1>Hello World!</h1>
 
             { store.main.books.map(b => <Book book={b}/>) }
         </div>
@@ -37,17 +38,32 @@ const Main = ({store}: {store: any}) => {
 
 // State and initialization below this line.
 
-const initialState = {
-    page: 'main',
-    books: [],
+interface mainState {
+    page: string
+    books: Book_[]
 }
 
-const mainReducer = (state=initialState, action: any) => {
+const initialState: mainState = {
+    page: 'main',
+    books: [
+        {
+            title: "Snow Clash",
+            author: "Asimov",
+            id: 0,
+            isbn_10: "asdf",
+            isbn_13: "kkkk",
+        }
+    ],
+}
+
+const mainReducer = (state: mainState=initialState, action: any) => {
     // Misc config variables not related to the current schedule.
     switch (action.type) {
         case 'changePage':
             return {...state, page: action.Page}
 
+        default:
+            return state
     }
 }
 
@@ -56,17 +72,14 @@ let reducer = combineReducers({
     main: mainReducer,
 })
 
-export let store: Store<any> = createStore(reducer)
-
+const store: Store<any> = createStore(reducer)
 
 // Connext the redux store to React.
-const mapStateToProps = (state) => ({ main: state })
-const ConnectedSchedules = connect(mapStateToProps)(Main)
+const mapStateToProps = (state) => ({ store: state })
+const Connected = connect(mapStateToProps)(Main)
 
-export function render() {
-    ReactDOM.render(
-        <Provider store={store}>
-            <ConnectedSchedules />
-        </Provider>, document.getElementById('react')
-    )
-}
+ReactDOM.render(
+    <Provider store={store}>
+        <Connected />
+    </Provider>, document.getElementById('react')
+)

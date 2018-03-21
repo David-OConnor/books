@@ -11,6 +11,7 @@ workspace.xml
 
 # Project-specific
 node_modules/
+books-frontend2/
 
 
 # Front end

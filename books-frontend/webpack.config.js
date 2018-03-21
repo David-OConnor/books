@@ -4,7 +4,7 @@ module.exports = {
      },
     output: {
         filename: "[name].js",
-        path: __dirname + "/pucks/static/dist"
+        path: __dirname + "/dist"
     },
 
     // Enable sourcemaps for debugging webpack's output.

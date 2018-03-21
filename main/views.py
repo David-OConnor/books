@@ -8,6 +8,10 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import viewsets, mixins, generics
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+
 from main.models import Book, Author, ISBN
 from main.serializers import BookSerializer, AuthorSerializer, IsbnSerializer, \
     UserSerializer, GroupSerializer
@@ -29,13 +33,13 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
-@csrf_exempt
-class BookViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows items to be viewed or edited.
-    """
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
+# @csrf_exempt
+# class BookViewSet(viewsets.ModelViewSet):
+#     """
+#     API endpoint that allows items to be viewed or edited.
+#     """
+#     queryset = Book.objects.all()
+#     serializer_class = BookSerializer
 
 
 class BookList(generics.ListCreateAPIView):
@@ -46,3 +50,11 @@ class BookList(generics.ListCreateAPIView):
 class BookDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'snippets': reverse('book-list', request=request, format=format)
+    })
