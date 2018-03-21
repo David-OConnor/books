@@ -1,0 +1,18 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+django = "*"
+djangorestframework = "*"
+dj-database-url = "*"
+"psycopg2" = "*"
+ipython = "*"
+
+
+[dev-packages]
+
