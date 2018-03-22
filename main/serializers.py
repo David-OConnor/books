@@ -25,19 +25,24 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         # fields = ('title', 'wikipedia_url'
         #           )
-        fields = ('isbn', 'title', 'author', 'genre', 'wikipedia_url',
+        fields = ('id', 'isbn', 'title', 'author', 'genre', 'wikipedia_url',
                   'amazon_url', 'gutenberg_url', 'adelaide_url', 'copyright_exp_us',
                   'description'
                   )
+        depth = 1  # Allows author, isbn etc to serialize instead of showing the pk.
 
 
 # class AuthorSerializer(serializers.HyperlinkedModelSerializer):
 class AuthorSerializer(serializers.ModelSerializer):
-    model = Author
-    fields = ('first_name', 'last_name')
+
+    class Meta:
+        model = Author
+        fields = ('first_name', 'last_name')
 
 
 # class IsbnSerializer(serializers.HyperlinkedModelSerializer):
-class IsbnSerializer(serializers.HyperlinkedModelSerializer):
-    model = ISBN
-    fields = ('isbn_10', 'isbn_13', 'publication_date')
+class IsbnSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ISBN
+        fields = ('isbn_10', 'isbn_13', 'publication_date')

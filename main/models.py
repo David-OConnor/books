@@ -46,8 +46,12 @@ class Book(models.Model):
     amazon_url = models.CharField(max_length=50, blank=True, null=True)
     gutenberg_url = models.CharField(max_length=50, blank=True, null=True)
     adelaide_url = models.CharField(max_length=50, blank=True, null=True)
+    google_url = models.CharField(max_length=50, blank=True, null=True)
+    kobo_url = models.CharField(max_length=50, blank=True, null=True)
 
     copyright_exp_us = models.DateField(null=True)
+    # todo this will probably get removed in favor of checking the date.
+    copyright_expired = models.BooleanField(default=False)
 
     description = models.TextField(blank=True, null=True)
 

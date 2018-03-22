@@ -2,19 +2,35 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Provider, connect } from 'react-redux'
 import DjangoCSRFToken from 'django-react-csrftoken'
-import {createStore, Store, combineReducers} from 'redux'
+import { createStore, Store, combineReducers } from 'redux'
+
+import { Button, Grid, Row, Col, Clearfix,
+    Form, FormGroup, FormControl, ControlLabel } from 'react-bootstrap';
 
 import * as _ from 'lodash'
 
 
+export interface Author {
+    id: number
+    first_name: string
+    last_name: string
+}
+
 export interface Book_ {
     id: number
     title: string
-    author: string
+    author: Author
+    description: string
 
     wikipedia_url: string
     gutenberg_url: string
     adelaide_url: string
+    amazon_url: string
+    kobo_url: string
+    google_url: string
+
+    copyright_exp_us: string // date in format YYYY-MM-DD
+    copyright_expired: boolean
 
     isbn_10: string
     isbn_13: string
@@ -23,7 +39,6 @@ export interface Book_ {
 
 
 interface SearchProps {
-    dispatch: Function
 }
 
 interface SearchState {
@@ -44,28 +59,42 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
 
     render() {
         return (
-            <form style={{}}>
-                <label>
-                    Search by title, author, or ISBN:
-                    <input type="text" name="search"
-                           onChange={this.handleChange}/>
-                </label>
-                {/*<input type="submit" value="Submit" />*/}
-                <button type="button" value="Submit"
-                        onClick={ () => search(this.state.value) }
-                >Search</button>
-            </form>
+            <Form inline>
+                <FormGroup controlId="searchBox" >
+                    <ControlLabel>Search by title, author, or ISBN:</ControlLabel>
+                    <FormControl
+                        type="text"
+                        value={this.state.value}
+                        placeholder="Search by title or author"
+                        onChange={this.handleChange}
+                    />
+                    <FormControl.Feedback />
+
+                    <Button type="button"
+                            onClick={ () => search(this.state.value) }
+                    >Search</Button>
+                </FormGroup>
+
+            </Form>
         )
     }
 }
 
 const Book = ({book}: {book: Book_}) => (
-    <div>
-    <h4>{book.title}, written by: {book.author}</h4>
+    <div style={{marginTop: 40}}>
+        <h4>{book.title}, written by: {book.author.last_name}</h4>
+
         <div style={{float: 'left', width: 300, height: 100, background: 'teal'}}>
+            <h3>Information</h3>
+            <a href={book.wikipedia_url}>Wikipedia</a>
             <a href={book.wikipedia_url}>Wikipedia</a>
         </div>
+
         <div style={{float: 'left', width: 300, height: 100, background: 'salmon'}}>
+            <h3>Stores</h3>
+            <a href={book.amazon_url}>Amazon</a>
+            Kobo?
+            Google
 
         </div>
 
@@ -74,16 +103,58 @@ const Book = ({book}: {book: Book_}) => (
 )
 
 
+const HomePage = ({books}: {books: Book_[]}) => (
+    <div>
+        <h1>Find ebooks</h1>
+
+        <SearchForm />
+
+        { books.map(b => <Book key={b.id} book={b}/>) }
+    </div>
+)
+
+
+const Menu = () => (
+    <div>
+
+    </div>
+)
+
+
+
 // todo figure out what type the store is.
 const Main = ({store}: {store: any}) => {
-     return (
+    console.log(gstore.getState().books, "ALL")
+
+    // todo treat gstore as if it were local here, then change to store once
+    const page = gstore.getState().page  // code shortener
+    let activePage = <HomePage books={gstore.getState().books}/>
+    // if page == 'about' {
+    // activePage = <AboutPage />
+// }
+
+    // we sort out how not to hvae it local.
+    return (
         <div>
-            <h1>Find free digital books</h1>
+            <Grid>
+                <Row className="show-grid">
+                    <Col sm={12}>
+                        <Menu />
+                    </Col>
+                </Row>
 
-            <SearchForm />
+                <Row className="show-grid">
+                    <Col sm={10} smOffset={1}>
 
-            { gstore.getState().books.map(b => <Book key={b.id} book={b}/>) }
+
+                        { activePage }
+                    </Col>
+                </Row>
+            </Grid>
         </div>
+
+
+
     )
 }
 
@@ -168,20 +239,7 @@ interface mainState {
 
 const initialState: mainState = {
     page: 'front',
-    books: [
-        {
-            title: "Snow Clash",
-            author: "Asimov",
-            id: -99,
-
-            wikipedia_url: 'http://wiki.org',
-            gutenberg_url: '',
-            adelaide_url: 'http://australia',
-
-            isbn_10: "asdf",
-            isbn_13: "kkkk",
-        }
-    ],
+    books: [],
 }
 
 const mainReducer = (state: mainState=initialState, action: any) => {
@@ -193,6 +251,9 @@ const mainReducer = (state: mainState=initialState, action: any) => {
 
         case 'addBooks':
             return{...state, books: state.books.concat(action.books)}
+
+        case 'replaceBooks':
+            return{...state, books: action.books}
 
         default:
             return state
@@ -225,7 +286,7 @@ const Connected = connect(
 
 get('http://127.0.0.1:8000/main/books', (resp) => {
     gstore.dispatch({
-        type: 'addBooks',
+        type: 'replaceBooks',
         books: resp
     })
 })
@@ -235,3 +296,5 @@ ReactDOM.render(
         <Connected />
     </Provider>, document.getElementById('react')
 )
+
+// ReactDOM.render(<Main store={gstore} />, document.getElementById('react'))
