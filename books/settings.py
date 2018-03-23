@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'main',
     'corsheaders',
+    'webpack_loader'
+
 ]
 
 """
@@ -68,7 +70,8 @@ ROOT_URLCONF = 'books.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # Is this required?
+        'DIRS': [os.path.join(BASE_DIR, "templates"), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,6 +132,19 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+            'BUNDLE_DIR_NAME': 'bundles/',
+            'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.dev.json'),
+        }
+}
+
+
+# From django-webpack-loader docs
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'assets'),
+)
 
 # todo look up what this is for
 REST_FRAMEWORK = {

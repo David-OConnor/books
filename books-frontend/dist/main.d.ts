@@ -1,9 +1,10 @@
+/// <reference types="react" />
 export interface Author {
     id: number;
     first_name: string;
     last_name: string;
 }
-export interface Book_ {
+export interface Book2 {
     id: number;
     title: string;
     author: Author;
@@ -19,3 +20,9 @@ export interface Book_ {
     isbn_10: string;
     isbn_13: string;
 }
+export declare const Main: ({ store, gstore }: {
+    store: any;
+    gstore: any;
+}) => JSX.Element;
+export declare function get(url: string, callback?: any): void;
+export default Main;

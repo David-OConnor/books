@@ -1,14 +1,11 @@
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import { Provider, connect } from 'react-redux'
+
 import DjangoCSRFToken from 'django-react-csrftoken'
-import { createStore, Store, combineReducers } from 'redux'
 
 import { Button, Grid, Row, Col, Clearfix,
     Form, FormGroup, FormControl, ControlLabel } from 'react-bootstrap';
 
 import * as _ from 'lodash'
-
 
 export interface Author {
     id: number
@@ -16,7 +13,7 @@ export interface Author {
     last_name: string
 }
 
-export interface Book_ {
+export interface Book2 {
     id: number
     title: string
     author: Author
@@ -34,9 +31,14 @@ export interface Book_ {
 
     isbn_10: string
     isbn_13: string
-
 }
 
+export interface Resource {
+    name: string
+    description: string
+    website_url: string
+    download_url: string
+}
 
 interface SearchProps {
 }
@@ -59,7 +61,7 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
 
     render() {
         return (
-            <Form inline>
+            <Form inline={true}>
                 <FormGroup controlId="searchBox" >
                     <ControlLabel>Search by title, author, or ISBN:</ControlLabel>
                     <FormControl
@@ -70,9 +72,11 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                     />
                     <FormControl.Feedback />
 
-                    <Button type="button"
-                            onClick={ () => search(this.state.value) }
-                    >Search</Button>
+                    <Button
+                        type="button"
+                        onClick={() => search(this.state.value)}
+                    >Search
+                    </Button>
                 </FormGroup>
 
             </Form>
@@ -80,7 +84,7 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
     }
 }
 
-const Book = ({book}: {book: Book_}) => (
+const Book = ({book}: {book: Book2}) => (
     <div style={{marginTop: 40}}>
         <h4>{book.title}, written by: {book.author.last_name}</h4>
 
@@ -99,67 +103,98 @@ const Book = ({book}: {book: Book_}) => (
         </div>
 
     </div>
-
 )
 
-
-const HomePage = ({books}: {books: Book_[]}) => (
+const HomePage = ({books}: {books: Book2[]}) => (
     <div>
         <h1>Find ebooks</h1>
 
         <SearchForm />
 
-        { books.map(b => <Book key={b.id} book={b}/>) }
+        {books.map(b => <Book key={b.id} book={b}/>)}
     </div>
 )
 
+const Resource = ({resource}: {resource: Resource}) => (
+    <div>
+        <h3>{resource.name}</h3>
+        <p>{resource.description}</p>
+        <a href={resource.website_url}>Website</a>
+        <a href={resource.download_url}>Download</a>
+    </div>
+)
+
+const ResourcesPage = ({resources}: {resources: Resource[]}) => (
+    <div>
+        <h3>Useful information and software</h3>
+        {resources.map(r => <Resource key={r.name} resource={r} />)}
+    </div>
+)
+
+const AboutPage = () => (
+    <div>
+        <h2>What's the point?</h2>
+
+        <p>Many older books are available free online due to their copyright
+        expiring. This site makes it easy to find them in epub, Kindle, and PDF
+            format.
+
+        If not available for free, it shows popular websites where you can
+        buy them.</p>
+    </div>
+)
 
 const Menu = () => (
-    <div>
-
-    </div>
+    <div />
 )
 
+// todo state type should be MainState from index.tsx.
+export const Main = ({store, state, dispatch}: {store: any, state: any, dispatch: Function}) => {
+    console.log(state.books, "ALL")
 
-
-// todo figure out what type the store is.
-const Main = ({store}: {store: any}) => {
-    console.log(gstore.getState().books, "ALL")
-
-    // todo treat gstore as if it were local here, then change to store once
-    const page = gstore.getState().page  // code shortener
-    let activePage = <HomePage books={gstore.getState().books}/>
-    // if page == 'about' {
-    // activePage = <AboutPage />
-// }
+    const findPage = (page) => {
+        switch(page) {
+            case 'home':
+                return <HomePage books={state.books} />
+            case 'resources':
+                return <ResourcesPage resources={state.resources} />
+            case 'about':
+                return <AboutPage />
+            default:
+                return <HomePage books={state.books} />
+        }
+    }
+    const activePage = findPage(state.activePage)
 
     // we sort out how not to hvae it local.
     return (
         <div>
             <Grid>
-                <Row className="show-grid">
+                <Row
+                    className="show-grid"
+                >
                     <Col sm={12}>
                         <Menu />
                     </Col>
                 </Row>
 
-                <Row className="show-grid">
-                    <Col sm={10} smOffset={1}>
-
-
-                        { activePage }
+                <Row
+                    className="show-grid"
+                >
+                    <Col
+                        sm={10}
+                        smOffset={1}
+                    >
+                        {activePage}
                     </Col>
                 </Row>
             </Grid>
         </div>
 
-
-
     )
 }
 
-
-function get(url: string, callback: any=() => null) {
+export function get(url: string, callback: any=() => null) {
     // Send a post request to the server; parse the response as JSON.
     let getCookie = null
     // fetch may fail on IE without a backwards-compatible version.
@@ -186,7 +221,6 @@ function get(url: string, callback: any=() => null) {
         })
         .then(callback)
 }
-
 
 function post(url: string, data, callback: any=() => null) {
     // Send a post request to the server; parse the response as JSON.
@@ -215,7 +249,6 @@ function post(url: string, data, callback: any=() => null) {
         .then(callback)
 }
 
-
 function search(query: string) {
     // Query the server with a search.
     const data = {
@@ -229,72 +262,4 @@ function search(query: string) {
     post('http://127.0.0.1:8000/main/search', data, success)
 }
 
-
-// State and initialization below this line.
-
-interface mainState {
-    page: string
-    books: Book_[]
-}
-
-const initialState: mainState = {
-    page: 'front',
-    books: [],
-}
-
-const mainReducer = (state: mainState=initialState, action: any) => {
-    // Misc config variables not related to the current schedule.
-    // todo figure out how to add types to these
-    switch (action.type) {
-        case 'changePage':
-            return {...state, page: action.page}
-
-        case 'addBooks':
-            return{...state, books: state.books.concat(action.books)}
-
-        case 'replaceBooks':
-            return{...state, books: action.books}
-
-        default:
-            return state
-    }
-}
-
-
-// let reducer = combineReducers({
-//     main: mainReducer,
-// })
-
-// const store: Store<any> = createStore(reducer)
-
-let gstore: Store<any> = createStore(mainReducer)
-
-// Connext the redux store to React.
-const mapStateToProps = (state) => ({ store: state })
-// const mapDispatchToProps = (dispatch) => ({ dispatch: dispatch })
-// todo sort this out later. Glob state for now
-// const Connected = connect(
-//     mapStateToProps,
-//     // mapDispatchToProps
-// )(Main)
-
-const Connected = connect(
-    mapStateToProps,
-    // mapDispatchToProps
-)(Main)
-
-
-get('http://127.0.0.1:8000/main/books', (resp) => {
-    gstore.dispatch({
-        type: 'replaceBooks',
-        books: resp
-    })
-})
-
-ReactDOM.render(
-    <Provider store={gstore}>
-        <Connected />
-    </Provider>, document.getElementById('react')
-)
-
-// ReactDOM.render(<Main store={gstore} />, document.getElementById('react'))
+export default Main

@@ -1,11 +1,21 @@
 module.exports = {
-    entry: {
-        main: "./src/main.tsx",
-     },
+
+    // For multi-file projects
+
+    // entry: {
+    //     main: "./src/main.tsx",
+    //  },
+    // output: {
+    //     filename: "[name].js",
+    //     path: __dirname + "/dist"
+    // },
+
+    entry: "./src/main.tsx",
     output: {
-        filename: "[name].js",
+        filename: "bundle.js",
         path: __dirname + "/dist"
     },
+
 
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
@@ -34,8 +44,3 @@ module.exports = {
         "react-dom": "ReactDOM"
     }
 }
-
-
-// commented out in package.json post run..
-// "postinstall": "../../node_modules/webpack/bin/webpack.js"
-//    "webpack": "node_modules/webpack/bin/webpack.js --progress --colors --watch"

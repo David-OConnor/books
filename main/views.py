@@ -12,8 +12,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from main.models import Book, Author, ISBN
-from main.serializers import BookSerializer, AuthorSerializer, IsbnSerializer, \
+from . import code
+from .models import Book, Author, ISBN
+from .serializers import BookSerializer, AuthorSerializer, IsbnSerializer, \
     UserSerializer, GroupSerializer
 
 
@@ -61,4 +62,5 @@ def api_root(request, format=None):
 
 
 def search(request):
-    pass
+    query = request.post['query']
+    return code.search(query)

@@ -15,6 +15,7 @@ ipython = "*"
 django-cors-headers = "*"
 pytest-django = "*"
 pytest = "*"
+django-webpack-loader = "*"
 
 
 [dev-packages]
