@@ -2,43 +2,12 @@ import * as React from 'react'
 
 import DjangoCSRFToken from 'django-react-csrftoken'
 
-import { Button, Grid, Row, Col, Clearfix,
-    Form, FormGroup, FormControl, ControlLabel } from 'react-bootstrap';
+import {Button, Grid, Row, Col, Clearfix,
+    Form, FormGroup, FormControl, ControlLabel, ButtonGroup,
+    DropdownButton, MenuItem} from 'react-bootstrap';
 
 import * as _ from 'lodash'
-
-export interface Author {
-    id: number
-    first_name: string
-    last_name: string
-}
-
-export interface Book2 {
-    id: number
-    title: string
-    author: Author
-    description: string
-
-    wikipedia_url: string
-    gutenberg_url: string
-    adelaide_url: string
-    amazon_url: string
-    kobo_url: string
-    google_url: string
-
-    copyright_exp_us: string // date in format YYYY-MM-DD
-    copyright_expired: boolean
-
-    isbn_10: string
-    isbn_13: string
-}
-
-export interface Resource {
-    name: string
-    description: string
-    website_url: string
-    download_url: string
-}
+import {Book2, MainState, Resource} from "./interfaces";
 
 interface SearchProps {
 }
@@ -136,22 +105,25 @@ const AboutPage = () => (
         <h2>What's the point?</h2>
 
         <p>Many older books are available free online due to their copyright
-        expiring. This site makes it easy to find them in epub, Kindle, and PDF
+            expiring. This site makes it easy to find them in epub, Kindle, and PDF
             format.
 
-        If not available for free, it shows popular websites where you can
-        buy them.</p>
+            If not available for free, it shows popular websites where you can
+            buy them.</p>
     </div>
 )
 
-const Menu = () => (
-    <div />
+const Menu = ({dispatch}: {dispatch: Function}) => (
+    <Col med={12}>
+        <ButtonGroup>
+            <Button onClick={() => dispatch({type: 'changePage', page: 'home'})}>Home</Button>
+            <Button onClick={() => dispatch({type: 'changePage', page: 'resources'})}>Resources</Button>
+            <Button onClick={() => dispatch({type: 'changePage', page: 'about'})}>About</Button>
+        </ButtonGroup>
+    </Col>
 )
 
-// todo state type should be MainState from index.tsx.
-export const Main = ({store, state, dispatch}: {store: any, state: any, dispatch: Function}) => {
-    console.log(state.books, "ALL")
-
+export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) => {
     const findPage = (page) => {
         switch(page) {
             case 'home':
@@ -164,27 +136,19 @@ export const Main = ({store, state, dispatch}: {store: any, state: any, dispatch
                 return <HomePage books={state.books} />
         }
     }
-    const activePage = findPage(state.activePage)
+    const activePage = findPage(state.page)
 
-    // we sort out how not to hvae it local.
     return (
         <div>
             <Grid>
-                <Row
-                    className="show-grid"
-                >
-                    <Col sm={12}>
-                        <Menu />
-                    </Col>
+                <Row className="show-grid">
+
+                    <Menu dispatch={dispatch} />
+
                 </Row>
 
-                <Row
-                    className="show-grid"
-                >
-                    <Col
-                        sm={10}
-                        smOffset={1}
-                    >
+                <Row className="show-grid">
+                    <Col sm={10} smOffset={1}>
                         {activePage}
                     </Col>
                 </Row>

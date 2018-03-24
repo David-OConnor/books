@@ -7,14 +7,10 @@ import { Provider, connect } from 'react-redux'
 
 import Main from './main'
 import * as main from './main'
+import {MainState} from "./interfaces";
 
 // This module contains state and initialization code.
 
-interface MainState {
-    page: string
-    books: main.Book2[]
-    resources: main.Resource[]
-}
 
 const initialState: MainState = {
     page: 'home',
@@ -31,14 +27,14 @@ const initialState: MainState = {
         {
             name: "Microsoft Edge",
             description: "Epub viewer built into Windows 10",
-            website_url: "https://calibre-ebook.com/",
-            download_url: "https://calibre-ebook.com/download"
+            website_url: "https://support.microsoft.com/en-us/help/4014945/windows-10-read-books-in-the-browser",
+            download_url: ""
         },
         {
             name: "Moon+",
-            description: "Popular book viewer for iOs and Android",
-            website_url: "https://calibre-ebook.com/",
-            download_url: "https://calibre-ebook.com/download"
+            description: "Popular book viewer for Android",
+            website_url: "http://www.moondownload.com/",
+            download_url: "http://www.moondownload.com/download.html"
         },
         {
             name: "Aldiko",
@@ -76,32 +72,23 @@ const mainReducer = (state: MainState=initialState, action: any) => {
 
 // const store: Store<any> = createStore(reducer)
 
-let gstore: Store<any> = createStore(mainReducer)
+let store: Store<any> = createStore(mainReducer)
 
 // Connext the redux store to React.
-const mapStateToProps = (state) => ({ store: state, state: gstore.getState(),
-    dispatch: gstore.dispatch })
-// const mapDispatchToProps = (dispatch) => ({ dispatch: dispatch })
-// todo sort this out later. Glob state for now
-// const Connected = connect(
-//     mapStateToProps,
-//     // mapDispatchToProps
-// )(Main)
+const mapStateToProps = (state) => ({ state: state })
+const mapDispatchToProps = (dispatch) => ({ dispatch: dispatch })
 
-const Connected = connect(
-    mapStateToProps,
-    // mapDispatchToProps
-)(Main)
+const Connected = connect(mapStateToProps, mapDispatchToProps)(Main)
 
 // main.get('http://127.0.0.1:8000/main/books', (resp) => {
-//   gstore.dispatch({
+//   store.dispatch({
 //       type: 'replaceBooks',
 //       books: resp
 //   })
 // })
 
 ReactDOM.render(
-    <Provider store={gstore}>
+    <Provider store={store}>
         <Connected />
     </Provider>,
     document.getElementById('root') as HTMLElement

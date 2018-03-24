@@ -23,8 +23,6 @@ class GroupSerializer(serializers.ModelSerializer):
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        # fields = ('title', 'wikipedia_url'
-        #           )
         fields = ('id', 'isbn', 'title', 'author', 'genre', 'wikipedia_url',
                   'amazon_url', 'gutenberg_url', 'adelaide_url', 'copyright_exp_us',
                   'description'

@@ -60,6 +60,11 @@ class Book(models.Model):
 
     class Meta:
         ordering = ('author', 'title')
+        unique_together = ('author', 'title')
 
 
-unique_together = ('author', 'title')
+class Resource(models.Model):
+    name = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    description = models.CharField(max_length=50, blank=True, null=True)
+    website_url = models.CharField(max_length=50, blank=True, null=True)
+    download_url = models.CharField(max_length=50, blank=True, null=True)
