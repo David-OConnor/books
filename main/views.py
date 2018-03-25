@@ -1,24 +1,14 @@
-from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User, Group
 
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view
-from rest_framework.views import APIView
-from rest_framework import viewsets, mixins, generics
+from rest_framework import viewsets, generics
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
 from rest_framework import permissions
 
-from . import code
-from .models import Book, Author, ISBN
-from .serializers import BookSerializer, AuthorSerializer, IsbnSerializer, \
-    UserSerializer, GroupSerializer
-from .permissions import IsOwnerOrReadOnly
+from .models import Book
+from .serializers import BookSerializer, UserSerializer, GroupSerializer
+from .src import db
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -52,4 +42,4 @@ class BookDetail(generics.RetrieveUpdateDestroyAPIView):
 
 def search(request):
     query = request.post['query']
-    return code.search(query)
+    return db.query(query, '')
