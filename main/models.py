@@ -55,6 +55,10 @@ class Book(models.Model):
 
     description = models.TextField(blank=True, null=True)
 
+    # owner = models.ForeignKey('auth.User', related_name='books',
+    #                           on_delete=models.CASCADE)
+    # highlighted = models.TextField()
+
     def __str__(self):
         return f"{self.title}, by {self.author}"
 

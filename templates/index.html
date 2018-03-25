@@ -26,20 +26,19 @@
 
     <body>
         <noscript>
-            You need to enable JavaScript to run this app.
+            You need to enable JavaScript to use this site.
         </noscript>
 
         <div id="root"></div>
             {% render_bundle 'main' %}
 
+        <!-- The js script links below are handled by render_bundle; not required here. -->
 
         <!-- Dependencies -->
-        <script src="./node_modules/react/umd/react.development.js"></script>
-        <script src="./node_modules/react-dom/umd/react-dom.development.js"></script>
-
-
+{#        <script src="./node_modules/react/umd/react.development.js"></script>#}
+{#        <script src="./node_modules/react-dom/umd/react-dom.development.js"></script>#}
 
         <!-- Main -->
-        <script src="./dist/bundle.js"></script>
+{#        <script src="./dist/bundle.js"></script>#}
     </body>
 </html>

@@ -411,6 +411,13 @@ aws4@^1.2.1, aws4@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
 
+axios@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
+  dependencies:
+    follow-redirects "^1.3.0"
+    is-buffer "^1.1.5"
+
 axobject-query@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-0.1.0.tgz#62f59dbc59c9f9242759ca349960e7a2fe3c36c0"
@@ -3055,6 +3062,12 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.1"
     readable-stream "^2.0.4"
 
+follow-redirects@^1.3.0:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.4.1.tgz#d8120f4518190f55aac65bb6fc7b85fcd666d6aa"
+  dependencies:
+    debug "^3.1.0"
+
 for-in@^1.0.1, for-in@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -3161,13 +3174,6 @@ fs-write-stream-atomic@^1.0.8:
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
-
-fsevents@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-1.1.2.tgz#3282b713fb3ad80ede0e9fcf4611b5aa6fc033f4"
-  dependencies:
-    nan "^2.3.0"
-    node-pre-gyp "^0.6.36"
 
 fsevents@^1.0.0, fsevents@^1.1.1, fsevents@^1.1.2, fsevents@^1.1.3:
   version "1.1.3"
@@ -5337,7 +5343,7 @@ node-notifier@^5.0.2, node-notifier@^5.2.1:
     shellwords "^0.1.1"
     which "^1.3.0"
 
-node-pre-gyp@^0.6.36, node-pre-gyp@^0.6.39:
+node-pre-gyp@^0.6.39:
   version "0.6.39"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.39.tgz#c00e96860b23c0e1420ac7befc5044e1d78d8649"
   dependencies:
@@ -6414,47 +6420,6 @@ react-redux@^5.0.7:
     loose-envify "^1.1.0"
     prop-types "^15.6.0"
 
-react-scripts-ts@2.14.0:
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/react-scripts-ts/-/react-scripts-ts-2.14.0.tgz#efde0e970f4efb36b49dbaa907c957c281048d9b"
-  dependencies:
-    autoprefixer "7.1.6"
-    babel-jest "^22.1.0"
-    babel-loader "^7.1.2"
-    babel-preset-react-app "^3.1.1"
-    case-sensitive-paths-webpack-plugin "2.1.1"
-    chalk "1.1.3"
-    css-loader "0.28.7"
-    dotenv "4.0.0"
-    extract-text-webpack-plugin "3.0.2"
-    file-loader "0.11.2"
-    fork-ts-checker-webpack-plugin "^0.2.8"
-    fs-extra "3.0.1"
-    html-webpack-plugin "2.29.0"
-    jest "22.1.4"
-    object-assign "4.1.1"
-    postcss-flexbugs-fixes "3.2.0"
-    postcss-loader "2.0.8"
-    promise "8.0.1"
-    raf "3.4.0"
-    react-dev-utils "4.2.1"
-    source-map-loader "^0.2.1"
-    style-loader "0.19.0"
-    sw-precache-webpack-plugin "0.11.4"
-    ts-jest "22.0.1"
-    ts-loader "^2.3.7"
-    tsconfig-paths-webpack-plugin "^2.0.0"
-    tslint "^5.7.0"
-    tslint-react "^3.2.0"
-    uglifyjs-webpack-plugin "^1.1.8"
-    url-loader "0.6.2"
-    webpack "3.8.1"
-    webpack-dev-server "2.9.4"
-    webpack-manifest-plugin "1.3.2"
-    whatwg-fetch "2.0.3"
-  optionalDependencies:
-    fsevents "1.1.2"
-
 react-scripts@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/react-scripts/-/react-scripts-1.1.1.tgz#279d449f7311fed910506987a1ade014027788a8"
@@ -7178,7 +7143,7 @@ source-list-map@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/source-list-map/-/source-list-map-2.0.0.tgz#aaa47403f7b245a92fbc97ea08f250d6087ed085"
 
-source-map-loader@^0.2.1, source-map-loader@^0.2.3:
+source-map-loader@^0.2.1:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/source-map-loader/-/source-map-loader-0.2.3.tgz#d4b0c8cd47d54edce3e6bfa0f523f452b5b0e521"
   dependencies:

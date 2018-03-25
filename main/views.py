@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User, Group
 
@@ -11,11 +12,13 @@ from rest_framework import viewsets, mixins, generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework import permissions
 
 from . import code
 from .models import Book, Author, ISBN
 from .serializers import BookSerializer, AuthorSerializer, IsbnSerializer, \
     UserSerializer, GroupSerializer
+from .permissions import IsOwnerOrReadOnly
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -34,31 +37,17 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
-# @csrf_exempt
-# class BookViewSet(viewsets.ModelViewSet):
-#     """
-#     API endpoint that allows items to be viewed or edited.
-#     """
-#     queryset = Book.objects.all()
-#     serializer_class = BookSerializer
-
-
+@method_decorator(csrf_exempt, name='dispatch')
 class BookList(generics.ListCreateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 class BookDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-
-
-# @api_view(['GET'])
-# def api_root(request, format=None):
-#     return Response({
-#         'users': reverse('user-list', request=request, format=format),
-#         'snippets': reverse('book-list', request=request, format=format)
-#     })
+    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 def search(request):

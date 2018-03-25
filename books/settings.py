@@ -27,7 +27,7 @@ SECRET_KEY = '#k-b7j1ucvc2#w)lrmw0^pq@2v^n#%4x7^%8vkyu@r4e4+0ngv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'main',
-    # 'corsheaders',
+    'corsheaders',
     'webpack_loader'
 
 ]

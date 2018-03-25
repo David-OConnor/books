@@ -4,10 +4,11 @@ import DjangoCSRFToken from 'django-react-csrftoken'
 
 import {Button, Grid, Row, Col, Clearfix,
     Form, FormGroup, FormControl, ControlLabel, ButtonGroup,
-    DropdownButton, MenuItem} from 'react-bootstrap';
+    DropdownButton, MenuItem} from 'react-bootstrap'
 
 import * as _ from 'lodash'
-import {Book2, MainState, Resource} from "./interfaces";
+import {Book2, MainState, Resource} from "./interfaces"
+import axios from "axios"
 
 interface SearchProps {
 }
@@ -88,8 +89,12 @@ const Resource = ({resource}: {resource: Resource}) => (
     <div>
         <h3>{resource.name}</h3>
         <p>{resource.description}</p>
-        <a href={resource.website_url}>Website</a>
-        <a href={resource.download_url}>Download</a>
+        <p>
+            <a href={resource.website_url}>Website</a>
+        </p>
+        <p>
+            <a href={resource.download_url}>Download</a>
+        </p>
     </div>
 )
 
@@ -116,7 +121,21 @@ const AboutPage = () => (
 const Menu = ({dispatch}: {dispatch: Function}) => (
     <Col med={12}>
         <ButtonGroup>
-            <Button onClick={() => dispatch({type: 'changePage', page: 'home'})}>Home</Button>
+            <Button
+                onClick={() => {
+                dispatch({type: 'changePage', page: 'home'})
+
+                axios.get('http://localhost:8000/main/books').then(
+                    (resp) =>
+                        dispatch({
+                            type: 'replaceBooks',
+                            books: resp.data.results
+                        })
+                )
+                }}
+            >
+                Home
+            </Button>
             <Button onClick={() => dispatch({type: 'changePage', page: 'resources'})}>Resources</Button>
             <Button onClick={() => dispatch({type: 'changePage', page: 'about'})}>About</Button>
         </ButtonGroup>
@@ -158,61 +177,6 @@ export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) 
     )
 }
 
-export function get(url: string, callback: any=() => null) {
-    // Send a post request to the server; parse the response as JSON.
-    let getCookie = null
-    // fetch may fail on IE without a backwards-compatible version.
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            // "X-CSRFToken": getCookie('csrftoken'),
-            // "Content-Type": "application/json; charset=UTF-8",
-            // "Accept": "application/json",
-            // "X-Requested-With": "XMLHttpRequest"
-            'Authorization': 'Basic '+btoa('admin:okokokok'),
-        },
-        // credentials: 'include',
-        // body: JSON.stringify(data)
-    })
-
-    // Parse JSON if able.
-        .then(result => {
-            try {
-                return result.json()
-            } catch(e) {
-                return result
-            }
-        })
-        .then(callback)
-}
-
-function post(url: string, data, callback: any=() => null) {
-    // Send a post request to the server; parse the response as JSON.
-    let getCookie = null
-    // fetch may fail on IE without a backwards-compatible version.
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            // "X-CSRFToken": getCookie('csrftoken'),
-            "Content-Type": "application/json; charset=UTF-8",
-            "Accept": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        },
-        credentials: 'include',
-        body: JSON.stringify(data)
-    })
-
-    // Parse JSON if able.
-        .then(result => {
-            try {
-                return result.json()
-            } catch(e) {
-                return result
-            }
-        })
-        .then(callback)
-}
-
 function search(query: string) {
     // Query the server with a search.
     const data = {
@@ -223,7 +187,7 @@ function search(query: string) {
     const success = (response) => {
         console.log("success:", response)
     }
-    post('http://127.0.0.1:8000/main/search', data, success)
+    // axios.post('http://127.0.0.1:8000/main/search', data, success)
 }
 
 export default Main

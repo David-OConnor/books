@@ -6,7 +6,7 @@ import { createStore, Store, combineReducers } from 'redux'
 import { Provider, connect } from 'react-redux'
 
 import Main from './main'
-import * as main from './main'
+// import * as main from './main'
 import {MainState} from "./interfaces";
 
 // This module contains state and initialization code.
@@ -79,13 +79,6 @@ const mapStateToProps = (state) => ({ state: state })
 const mapDispatchToProps = (dispatch) => ({ dispatch: dispatch })
 
 const Connected = connect(mapStateToProps, mapDispatchToProps)(Main)
-
-// main.get('http://127.0.0.1:8000/main/books', (resp) => {
-//   store.dispatch({
-//       type: 'replaceBooks',
-//       books: resp
-//   })
-// })
 
 ReactDOM.render(
     <Provider store={store}>
