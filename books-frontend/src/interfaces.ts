@@ -5,24 +5,14 @@ export interface Author {
     last_name: string
 }
 
-export interface Book2 {
+export interface Work {
     id: number
     title: string
     author: Author
     description: string
 
-    wikipedia_url: string
-    gutenberg_url: string
-    adelaide_url: string
-    amazon_url: string
-    kobo_url: string
-    google_url: string
-
-    copyright_exp_us: string // date in format YYYY-MM-DD
-    copyright_expired: boolean
-
-    isbn_10: string
-    isbn_13: string
+    // copyright_exp_us: string // date in format YYYY-MM-DD
+    // copyright_expired: boolean
 }
 
 export interface Resource {
@@ -35,6 +25,6 @@ export interface Resource {
 // Other interfaces:
 export interface MainState {
     page: string
-    books: Book2[]
+    books: Work[]
     resources: Resource[]
 }

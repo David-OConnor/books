@@ -5,6 +5,8 @@ import registerServiceWorker from './registerServiceWorker'
 import { createStore, Store, combineReducers } from 'redux'
 import { Provider, connect } from 'react-redux'
 
+import axios from "axios"
+
 import Main from './main'
 // import * as main from './main'
 import {MainState} from "./interfaces";
@@ -15,34 +17,7 @@ import {MainState} from "./interfaces";
 const initialState: MainState = {
     page: 'home',
     books: [],
-
-    // todo temp; store this in the database.
-    resources: [
-        {
-            name: "Calibre",
-            description: "Popular book viewer and editor with lots of options.",
-            website_url: "https://calibre-ebook.com/",
-            download_url: "https://calibre-ebook.com/download"
-        },
-        {
-            name: "Microsoft Edge",
-            description: "Epub viewer built into Windows 10",
-            website_url: "https://support.microsoft.com/en-us/help/4014945/windows-10-read-books-in-the-browser",
-            download_url: ""
-        },
-        {
-            name: "Moon+",
-            description: "Popular book viewer for Android",
-            website_url: "http://www.moondownload.com/",
-            download_url: "http://www.moondownload.com/download.html"
-        },
-        {
-            name: "Aldiko",
-            description: "Popular book viewer for Android.",
-            website_url: "http://www.aldiko.com/",
-            download_url: "http://aldiko.com/download.html"
-        },
-    ],
+    resources: [],
 }
 
 const mainReducer = (state: MainState=initialState, action: any) => {
@@ -66,13 +41,17 @@ const mainReducer = (state: MainState=initialState, action: any) => {
     }
 }
 
-// let reducer = combineReducers({
-//     main: mainReducer,
-// })
-
-// const store: Store<any> = createStore(reducer)
 
 let store: Store<any> = createStore(mainReducer)
+
+// Populate resources.
+axios.get('http://localhost:8000/api/resources').then(
+    (resp) =>
+        store.dispatch({
+            type: 'replaceResources',
+            resources: resp.data.results
+        })
+)
 
 // Connext the redux store to React.
 const mapStateToProps = (state) => ({ state: state })

@@ -1,16 +1,21 @@
 from difflib import SequenceMatcher
 from typing import List
 
-from ..models import Book, ISBN
+from ..models import Work, Isbn
 from . import google
 
 
-def query(title: str, author: str) -> List[Book]:
+def update_db_from_gutenbert() -> None:
+    """Add and edit books and authors in the database using Gutenberg's catalog,
+    stored locally."""
+
+
+def query(title: str, author: str) -> List[Work]:
     # A higher min_match_ratio will be more likely to not match something in the
     # database, and favor looking up a new one in the API.
     min_match_ratio = .3
     title, author = title.lower(), author.lower()
-    db_entries = Book.objects.all()
+    db_entries = Work.objects.all()
 
     ratios = []
     for book in db_entries:
@@ -32,7 +37,7 @@ def query(title: str, author: str) -> List[Book]:
     return [book[0] for book in filtered]
 
 
-def save_from_api(title: str, author: str, db_entries: List[Book]) -> Book:
+def save_from_api(title: str, author: str, db_entries: List[Work]) -> Work:
     """Adds a new ISBN and/or Work to the database..."""
     # todo do we need to track ISBNs at all? May be too confusing.
     api_data = google.search(title, author)
@@ -53,7 +58,7 @@ def save_from_api(title: str, author: str, db_entries: List[Book]) -> Book:
     # authors list google returns, and ignore the rest.
     best_author = max(author_ratios, key=lambda x: x[1])[0]
 
-    work = Book(title=best.title, author=best_author)
+    work = Work(title=best.title, author=best_author)
 
     work.save()
     # If an ISBN's present for that entry, make a database entry for it.

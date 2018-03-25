@@ -7,7 +7,7 @@ import {Button, Grid, Row, Col, Clearfix,
     DropdownButton, MenuItem} from 'react-bootstrap'
 
 import * as _ from 'lodash'
-import {Book2, MainState, Resource} from "./interfaces"
+import {Work, MainState, Resource} from "./interfaces"
 import axios from "axios"
 
 interface SearchProps {
@@ -54,19 +54,19 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
     }
 }
 
-const Book = ({book}: {book: Book2}) => (
+const Book = ({book}: {book: Work}) => (
     <div style={{marginTop: 40}}>
         <h4>{book.title}, written by: {book.author.last_name}</h4>
 
         <div style={{float: 'left', width: 300, height: 100, background: 'teal'}}>
             <h3>Information</h3>
-            <a href={book.wikipedia_url}>Wikipedia</a>
-            <a href={book.wikipedia_url}>Wikipedia</a>
+            <a href={''}>Wikipedia</a>
+            <a href={''}>Wikipedia</a>
         </div>
 
         <div style={{float: 'left', width: 300, height: 100, background: 'salmon'}}>
             <h3>Stores</h3>
-            <a href={book.amazon_url}>Amazon</a>
+            <a href={''}>Amazon</a>
             Kobo?
             Google
 
@@ -75,7 +75,7 @@ const Book = ({book}: {book: Book2}) => (
     </div>
 )
 
-const HomePage = ({books}: {books: Book2[]}) => (
+const HomePage = ({books}: {books: Work[]}) => (
     <div>
         <h1>Find ebooks</h1>
 
@@ -86,7 +86,7 @@ const HomePage = ({books}: {books: Book2[]}) => (
 )
 
 const Resource = ({resource}: {resource: Resource}) => (
-    <div>
+    <div style={{marginBottom: 40}}>
         <h3>{resource.name}</h3>
         <p>{resource.description}</p>
         <p>
@@ -105,6 +105,7 @@ const ResourcesPage = ({resources}: {resources: Resource[]}) => (
     </div>
 )
 
+ // todo: Make about page text a database entry.
 const AboutPage = () => (
     <div>
         <h2>What's the point?</h2>
@@ -113,19 +114,31 @@ const AboutPage = () => (
             expiring. This site makes it easy to find them in epub, Kindle, and PDF
             format.
 
+            An important part is to show only what you search for: Ie only the cleanest
+            Version, with no extraneous results.
+
             If not available for free, it shows popular websites where you can
             buy them.</p>
+
+        <p>
+            Special thanks to:
+
+            -Project Gutenberg, for its excellent library of
+            free books, and for providing tools to search their database.
+
+            -Google, for their Books search tools.
+        </p>
     </div>
 )
 
 const Menu = ({dispatch}: {dispatch: Function}) => (
-    <Col med={12}>
+    <Col sm={6} smOffset={4}>
         <ButtonGroup>
             <Button
                 onClick={() => {
                 dispatch({type: 'changePage', page: 'home'})
 
-                axios.get('http://localhost:8000/main/books').then(
+                axios.get('http://localhost:8000/api/books').then(
                     (resp) =>
                         dispatch({
                             type: 'replaceBooks',

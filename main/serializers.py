@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 
 from rest_framework import serializers
 
-from .models import Book, Author, ISBN
+from .models import Work, Author, Isbn, Resource
 
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -20,13 +20,10 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 # class BookSerializer(serializers.HyperlinkedModelSerializer):
-class BookSerializer(serializers.ModelSerializer):
+class WorkSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Book
-        fields = ('id', 'isbn', 'title', 'author', 'genre', 'wikipedia_url',
-                  'amazon_url', 'gutenberg_url', 'adelaide_url', 'copyright_exp_us',
-                  'description'
-                  )
+        model = Work
+        fields = ('id', 'title', 'author', 'genre', 'description')
         depth = 1  # Allows author, isbn etc to serialize instead of showing the pk.
 
 
@@ -42,5 +39,13 @@ class AuthorSerializer(serializers.ModelSerializer):
 class IsbnSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ISBN
+        model = Isbn
         fields = ('isbn_10', 'isbn_13', 'publication_date')
+
+
+# class AuthorSerializer(serializers.HyperlinkedModelSerializer):
+class ResourceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Resource
+        fields = ('name', 'description', 'website_url', 'download_url')
