@@ -1,20 +1,64 @@
-from difflib import SequenceMatcher
-from typing import List
+from enum import Enum  # todo temp for Option testing.
 
-from ..models import Work, Isbn
+from difflib import SequenceMatcher
+from typing import List, Iterator
+
+import itertools
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+
+from ..models import Work, Isbn, Author
 from . import google
 
 
-def update_db_from_gutenbert() -> None:
+class Option(Enum):
+    # todo Experimental. Like Rust's Option.
+    NONE = 1
+    SOME = 2
+
+
+def composite_ratio(ratio_1: float, ratio_2: float) -> float:
+    try:
+        return 1 / (1/ratio_1 + 1/ratio_2)
+    except ZeroDivisionError:
+        return 0
+
+
+def update_db_from_gutenberg() -> None:
     """Add and edit books and authors in the database using Gutenberg's catalog,
     stored locally."""
 
 
-def query(title: str, author: str) -> List[Work]:
+def search(title: str, author: str) -> Iterator[Work]:
+    """Use Postgres's search feature to query the databse based on title and author."""
+    authors = Author.objects.annotate(
+        search=SearchVector('first_name', 'last_name')
+    ).filter(search=author)
+
+    works = Work.objects.filter(title__search=title)
+
+    return itertools.chain(works.filter(author__in=authors))
+
+
+# todo signature: Iteator[Work] or None.
+def search_or_update(title: str, author: str) -> Iterator[Work]:
+    results = list(search(title, author))
+    return results
+    # if results:
+    #     return Option.SOME(results)
+    # return Option.NONE(results)
+
+
+
+
+
+def search2(title: str, author: str) -> Iterator[Work]:
+    """Find the most likely database values for this work."""
     # A higher min_match_ratio will be more likely to not match something in the
     # database, and favor looking up a new one in the API.
     min_match_ratio = .3
     title, author = title.lower(), author.lower()
+
+    # todo nope: We have to query specifically here.
     db_entries = Work.objects.all()
 
     ratios = []
@@ -22,8 +66,8 @@ def query(title: str, author: str) -> List[Work]:
         # todo consider quick ratio.
         title_ratio = SequenceMatcher(None, title, book.title).ratio()
         # todo for now, we're only using one author per work.
-        author_ratio = SequenceMatcher(None, author, book.author).ratio()
-        composite = google.composite_ratio(title_ratio, author_ratio)
+        author_ratio = SequenceMatcher(None, author, book.author.full_name()).ratio()
+        composite = composite_ratio(title_ratio, author_ratio)
         ratios.append((book, title_ratio, author_ratio, composite))
 
     sequenced = sorted(ratios, key=lambda x: x[3], reverse=True)
@@ -32,9 +76,9 @@ def query(title: str, author: str) -> List[Work]:
 
     if not filtered:
         print("Didn't find it; saving to API")
-        return [save_from_api(title, author, db_entries)]
+        # return [save_from_api(title, author, db_entries)]
 
-    return [book[0] for book in filtered]
+    return (book[0] for book in filtered)
 
 
 def save_from_api(title: str, author: str, db_entries: List[Work]) -> Work:

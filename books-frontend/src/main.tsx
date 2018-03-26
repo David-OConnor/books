@@ -1,7 +1,5 @@
 import * as React from 'react'
 
-import DjangoCSRFToken from 'django-react-csrftoken'
-
 import {Button, Grid, Row, Col, Clearfix,
     Form, FormGroup, FormControl, ControlLabel, ButtonGroup,
     DropdownButton, MenuItem} from 'react-bootstrap'
@@ -11,22 +9,36 @@ import {Work, MainState, Resource} from "./interfaces"
 import axios from "axios"
 
 interface SearchProps {
+    dispatch: Function
 }
 
 interface SearchState {
     value: string
+    title: string
+    author: string
 }
 
 class SearchForm extends React.Component<SearchProps, SearchState> {
+
+    // todo make this one search field instead of separate title and author.
     constructor(props: SearchProps) {
         super(props);
-        this.state = {value: ''}
+        this.state = {
+            value: '',
+            title: '',
+            author: '',
+        }
 
-        this.handleChange = this.handleChange.bind(this)
+        this.handleChangeTitle = this.handleChangeTitle.bind(this)
+        this.handleChangeAuthor = this.handleChangeAuthor.bind(this)
     }
 
-    handleChange(event) {
-        this.setState({value: event.target.value})
+    handleChangeTitle(event) {
+        this.setState({title: event.target.value})
+    }
+
+    handleChangeAuthor(event) {
+        this.setState({author: event.target.value})
     }
 
     render() {
@@ -36,15 +48,32 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                     <ControlLabel>Search by title, author, or ISBN:</ControlLabel>
                     <FormControl
                         type="text"
-                        value={this.state.value}
-                        placeholder="Search by title or author"
-                        onChange={this.handleChange}
+                        value={this.state.title}
+                        placeholder="title"
+                        onChange={this.handleChangeTitle}
+                    />
+                    <FormControl.Feedback />
+
+                    <FormControl
+                        type="text"
+                        value={this.state.author}
+                        placeholder="author"
+                        onChange={this.handleChangeAuthor}
                     />
                     <FormControl.Feedback />
 
                     <Button
                         type="button"
-                        onClick={() => search(this.state.value)}
+                        onClick={() => axios.post(
+                            'http://localhost:8000/api/search',
+                            {title: this.state.title, author: this.state.author}
+                        ).then(
+                            (resp) =>{
+                                this.props.dispatch({
+                                    type: 'replaceBooks',
+                                    books: resp.data
+                                })}
+                        )}
                     >Search
                     </Button>
                 </FormGroup>
@@ -75,11 +104,11 @@ const Book = ({book}: {book: Work}) => (
     </div>
 )
 
-const HomePage = ({books}: {books: Work[]}) => (
+const HomePage = ({books, dispatch}: {books: Work[], dispatch: Function}) => (
     <div>
-        <h1>Find ebooks</h1>
+        <h1>Find and download ebooks</h1>
 
-        <SearchForm />
+        <SearchForm dispatch={dispatch} />
 
         {books.map(b => <Book key={b.id} book={b}/>)}
     </div>
@@ -105,7 +134,7 @@ const ResourcesPage = ({resources}: {resources: Resource[]}) => (
     </div>
 )
 
- // todo: Make about page text a database entry.
+// todo: Make about page text a database entry.
 const AboutPage = () => (
     <div>
         <h2>What's the point?</h2>
@@ -136,15 +165,15 @@ const Menu = ({dispatch}: {dispatch: Function}) => (
         <ButtonGroup>
             <Button
                 onClick={() => {
-                dispatch({type: 'changePage', page: 'home'})
+                    dispatch({type: 'changePage', page: 'home'})
 
-                axios.get('http://localhost:8000/api/books').then(
-                    (resp) =>
-                        dispatch({
-                            type: 'replaceBooks',
-                            books: resp.data.results
-                        })
-                )
+                    axios.get('http://localhost:8000/api/books').then(
+                        (resp) =>
+                            dispatch({
+                                type: 'replaceBooks',
+                                books: resp.data.results
+                            })
+                    )
                 }}
             >
                 Home
@@ -159,13 +188,13 @@ export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) 
     const findPage = (page) => {
         switch(page) {
             case 'home':
-                return <HomePage books={state.books} />
+                return <HomePage books={state.books} dispatch={dispatch} />
             case 'resources':
                 return <ResourcesPage resources={state.resources} />
             case 'about':
                 return <AboutPage />
             default:
-                return <HomePage books={state.books} />
+                return <HomePage books={state.books} dispatch={dispatch}/>
         }
     }
     const activePage = findPage(state.page)
@@ -186,21 +215,7 @@ export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) 
                 </Row>
             </Grid>
         </div>
-
     )
-}
-
-function search(query: string) {
-    // Query the server with a search.
-    const data = {
-        // type: 'search'
-        query: query,
-    }
-
-    const success = (response) => {
-        console.log("success:", response)
-    }
-    // axios.post('http://127.0.0.1:8000/main/search', data, success)
 }
 
 export default Main

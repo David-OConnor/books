@@ -27,6 +27,9 @@ class Author(models.Model):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
 
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
@@ -45,12 +48,15 @@ class Work(models.Model):
     title = models.CharField(max_length=50)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
 
-    genre = models.CharField(max_length=50, validators=[validate_comma_separated_integer_list])
+    genre = models.CharField(
+        max_length=50, null=True, blank=True,
+        validators=[validate_comma_separated_integer_list]
+    )
 
     description = models.TextField(blank=True, null=True)
 
     # todo currently duplicated pub date between here and ISBN.
-    publication_date = models.DateField(null=True)
+    publication_date = models.DateField(null=True, blank=True)
 
     def us_copyright_exp(self) -> bool:
         """Calculate if a book's copyright is expired in the US. From rules listed

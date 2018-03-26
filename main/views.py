@@ -2,9 +2,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User, Group
 
-from rest_framework import viewsets, generics
-
-from rest_framework import permissions
+from rest_framework import viewsets, generics, permissions
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Work, Resource
 from .serializers import WorkSerializer, UserSerializer, GroupSerializer, \
@@ -46,6 +46,12 @@ class BookDetail(generics.RetrieveUpdateDestroyAPIView):
     # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
+# Why do I have to use this csrf decorator here, but not on the other views?
+# @method_decorator(csrf_exempt, name='dispatch')
+@csrf_exempt
+@api_view(['POST'])
 def search(request):
-    query = request.post['query']
-    return db.query(query, '')
+    title, author = request.data['title'], request.data['author']
+
+    results = db.search_or_update(title, author)
+    return Response(WorkSerializer(results, many=True).data)
