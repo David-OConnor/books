@@ -1,19 +1,13 @@
-from enum import Enum  # todo temp for Option testing.
+# from enum import Enum  # todo temp for Option testing.
 
 from difflib import SequenceMatcher
-from typing import List, Iterator
+from typing import List, Iterator, Optional
 
 import itertools
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 
 from ..models import Work, Isbn, Author
 from . import google
-
-
-class Option(Enum):
-    # todo Experimental. Like Rust's Option.
-    NONE = 1
-    SOME = 2
 
 
 def composite_ratio(ratio_1: float, ratio_2: float) -> float:
@@ -40,15 +34,12 @@ def search(title: str, author: str) -> Iterator[Work]:
 
 
 # todo signature: Iteator[Work] or None.
-def search_or_update(title: str, author: str) -> Iterator[Work]:
+def search_or_update(title: str, author: str) -> Optional[Iterator[Work]]:
     results = list(search(title, author))
     return results
     # if results:
     #     return Option.SOME(results)
     # return Option.NONE(results)
-
-
-
 
 
 def search2(title: str, author: str) -> Iterator[Work]:

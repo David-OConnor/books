@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 
 from rest_framework import serializers
 
-from .models import Work, Author, Isbn, Resource
+from .models import Work, Author, Isbn, Resource, WorkSource
 
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -19,12 +19,25 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ('url', 'name')
 
 
+class WorkSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkSource
+        # Don't include work here, since we're passing worksource as a child
+        # of work.  Source gets passed as a child of this.
+        # Include id, for React keys.
+        fields = ('id', 'source', 'epub_avail', 'kindle_avail', 'price',
+                  'book_url', 'download_url')
+        depth = 1
+
+
 # class BookSerializer(serializers.HyperlinkedModelSerializer):
 class WorkSerializer(serializers.ModelSerializer):
+    work_sources = WorkSourceSerializer(many=True)
+
     class Meta:
         model = Work
-        fields = ('id', 'title', 'author', 'genre', 'description')
-        depth = 1  # Allows author, isbn etc to serialize instead of showing the pk.
+        fields = ('id', 'title', 'author', 'genre', 'description', 'work_sources')
+        depth = 2  # Allows author, isbn etc to serialize instead of showing the pk.
 
 
 # class AuthorSerializer(serializers.HyperlinkedModelSerializer):

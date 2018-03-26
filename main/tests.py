@@ -15,34 +15,45 @@ class SearchTestCase(TestCase):
         hemingway = Author.objects.create(first_name="Ernest", last_name="Hemingway")
 
         # todo add similar names/authors etc to see how search handles it.
-        Work.objects.create(title="Pale Blue Dot", author=sagan)
-        Work.objects.create(title="Contact", author=sagan)
-        Work.objects.create(title="Cosmos", author=sagan)
+        self.pbd = Work.objects.create(title="Pale Blue Dot", author=sagan)
+        self.contact = Work.objects.create(title="Contact", author=sagan)
+        self.cosmos = Work.objects.create(title="Cosmos", author=sagan)
 
-        Work.objects.create(title="Seveneves", author=stephenson)
-        Work.objects.create(title="The Diamond Age", author=stephenson)
-        Work.objects.create(title="Snow Crash", author=stephenson)
+        self.seveneves = Work.objects.create(title="Seveneves", author=stephenson)
+        self.diamond_age = Work.objects.create(title="The Diamond Age", author=stephenson)
+        self.snow_crash = Work.objects.create(title="Snow Crash", author=stephenson)
 
-        Work.objects.create(title="Emma", author=austen)
-        Work.objects.create(title="Pride and Prejudice", author=austen)
-        Work.objects.create(title="Sense and Sensibility", author=austen)
+        self.emma = Work.objects.create(title="Emma", author=austen)
+        self.pride = Work.objects.create(title="Pride and Prejudice", author=austen)
+        self.sense = Work.objects.create(title="Sense and Sensibility", author=austen)
 
-        Work.objects.create(title="The Illiad", author=homer)
-        Work.objects.create(title="The Odyssey", author=homer)
+        self.illiad = Work.objects.create(title="The Illiad", author=homer)
+        self.odyssey = Work.objects.create(title="The Odyssey", author=homer)
 
-        Work.objects.create(title="The Divine Comedy", author=dante)
-        Work.objects.create(title="Purgatory", author=dante)
-        Work.objects.create(title="Purgatorio", author=dante)
-        Work.objects.create(title="Inferno", author=dante)
+        self.divine = Work.objects.create(title="The Divine Comedy", author=dante)
+        self.purgatory = Work.objects.create(title="Purgatory", author=dante)
+        self.purgatorio = Work.objects.create(title="Purgatorio", author=dante)
+        self.inferno = Work.objects.create(title="Inferno", author=dante)
 
-        Work.objects.create(title="The Sun Also Rises", author=hemingway)
-        Work.objects.create(title="For Whom the Bell Tolls", author=hemingway)
+        self.sun = Work.objects.create(title="The Sun Also Rises", author=hemingway)
+        self.bell = Work.objects.create(title="For Whom the Bell Tolls", author=hemingway)
 
-    def test_search_title(self):
-        pass
+    def test_search_exact_title_author(self):
+        self.assertEqual(list(db.search("Contact", "Carl Sagan")),
+                         [self.contact])
 
-    def test_search_author(self):
-        pass
+    def test_search_nearly_exact_title_author(self):
+        self.assertEqual(list(db.search("infern", "Dante Aligiery")),
+                         [self.inferno])
 
-    def test_search_both_1(self):
-        pass
+    def test_search_last_name_only(self):
+        self.assertEqual(list(db.search("emma", "austen")),
+                         [self.emma])
+
+    def test_search_title_only(self):  # todo add two books with teh same/similar title; confirm you get both.
+        self.assertEqual(list(db.search("purgatory", "")),
+                         [self.purgatory, self.purgatorio])
+
+    def test_search_author_only(self):
+        self.assertEqual(list(db.search("", "Austen")),
+                         [self.emma, self.pride, self.sense])

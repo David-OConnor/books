@@ -5,7 +5,7 @@ import {Button, Grid, Row, Col, Clearfix,
     DropdownButton, MenuItem} from 'react-bootstrap'
 
 import * as _ from 'lodash'
-import {Work, MainState, Resource} from "./interfaces"
+import {Work, MainState, Resource, WorkSource} from "./interfaces"
 import axios from "axios"
 
 interface SearchProps {
@@ -68,7 +68,7 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                             'http://localhost:8000/api/search',
                             {title: this.state.title, author: this.state.author}
                         ).then(
-                            (resp) =>{
+                            (resp) => {
                                 this.props.dispatch({
                                     type: 'replaceBooks',
                                     books: resp.data
@@ -83,26 +83,47 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
     }
 }
 
-const Book = ({book}: {book: Work}) => (
-    <div style={{marginTop: 40}}>
-        <h4>{book.title}, written by: {book.author.last_name}</h4>
+const Book = ({book}: {book: Work}) => {
+    const infoSources = book.work_sources.filter(
+        ws => ws.source.information
+    )
+    const freeSources = book.work_sources.filter(
+        ws => ws.source.free_downloads
+    )
+    const purchaseSources = book.work_sources.filter(
+        ws => ws.source.purchases
+    )
 
-        <div style={{float: 'left', width: 300, height: 100, background: 'teal'}}>
-            <h3>Information</h3>
-            <a href={''}>Wikipedia</a>
-            <a href={''}>Wikipedia</a>
-        </div>
+    let infoItems = []
+    for (let item of book.work_sources) {
+        // todo temp filler
+        infoItems.push(
+            <p key={item.id}>
+                <a href={item.book_url}>{item.source.name}</a>
+            </p>
+        )
+    }
 
-        <div style={{float: 'left', width: 300, height: 100, background: 'salmon'}}>
-            <h3>Stores</h3>
-            <a href={''}>Amazon</a>
-            Kobo?
-            Google
+    return (
+    <Row style={{marginTop: 40}}>
+        <h4>{book.title},
+            by: {`${book.author.first_name} ${book.author.last_name}`}</h4>
 
-        </div>
+        <Col xs={4} style={{background: '#ffefcc'}}>
+            <h4>Information</h4>
+            {infoItems}
+        </Col>
 
-    </div>
-)
+        <Col xs={4} style={{background: '#e8e7ff'}}>
+            <h4>Free downloads</h4>
+        </Col>
+
+        <Col xs={4} style={{background: '#e3ffeb'}}>
+            <h4>Stores</h4>
+        </Col>
+    </Row>
+    )
+}
 
 const HomePage = ({books, dispatch}: {books: Work[], dispatch: Function}) => (
     <div>

@@ -7,7 +7,7 @@ import saturn
 
 from django.core.validators import validate_comma_separated_integer_list
 
-TAGS = (
+TAGS = [
     (0, 'sci-fi'),
     (1, 'romance'),
     (2, 'non-fiction'),
@@ -20,7 +20,7 @@ TAGS = (
     (9, 'SCAR'),
     (10, 'OCF'),
     (11, 'Red air'),
-)
+]
 
 
 class Author(models.Model):
@@ -38,8 +38,13 @@ class Source(models.Model):
     """Information and metadata about a source of free books"""
     name = models.CharField(max_length=50, unique=True)
     url = models.CharField(max_length=50, unique=True)
+
+    information = models.BooleanField(default=False)
     free_downloads = models.BooleanField(default=False)
     purchases = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 
 # Create your models here.
@@ -50,7 +55,8 @@ class Work(models.Model):
 
     genre = models.CharField(
         max_length=50, null=True, blank=True,
-        validators=[validate_comma_separated_integer_list]
+        validators=[validate_comma_separated_integer_list],
+        # choices=TAGS
     )
 
     description = models.TextField(blank=True, null=True)
@@ -92,8 +98,8 @@ class Isbn(models.Model):
 
 
 class WorkSource(models.Model):
-    work = models.ForeignKey(Work, related_name='book_sources', on_delete=models.CASCADE,)
-    source = models.ForeignKey(Source, related_name='book_sources', on_delete=models.CASCADE)
+    work = models.ForeignKey(Work, related_name='work_sources', on_delete=models.CASCADE,)
+    source = models.ForeignKey(Source, related_name='work_sources', on_delete=models.CASCADE)
     epub_avail = models.BooleanField()
     kindle_avail = models.BooleanField()
 
@@ -118,18 +124,26 @@ def populate_initial_sources():
     Source.objects.update_or_create(
         name='Google',
         url='https://play.google.com/books/',
+        information=True,
         free_downloads=True,
-        purchases=True
+        purchases=True,
     )
 
     Source.objects.update_or_create(
         name='Wikipedia',
-        url='https://www.wikipedia.org/'
+        url='https://www.wikipedia.org/',
+        information=True,
     )
 
     Source.objects.update_or_create(
         name='Amazon',
         url='https://www.amazon.com/Kindle-eBooks/',
+        purchases=True
+    )
+
+    Source.objects.update_or_create(
+        name='Kobo',
+        url='https://www.kobo.com/',
         purchases=True
     )
 
@@ -143,6 +157,12 @@ def populate_initial_sources():
         name='University of Adelaide Library',
         url='https://ebooks.adelaide.edu.au/',
         free_downloads=True
+    )
+
+    Source.objects.update_or_create(
+        name='LibraryThing',
+        url='https://www.librarything.com/',
+        information=True
     )
 
 

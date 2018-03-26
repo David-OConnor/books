@@ -27,9 +27,9 @@ class ResourceAdmin(ModelAdmin):
 
 @register(Source)
 class SourceAdmin(ModelAdmin):
-    list_display = ('name', 'url')
+    list_display = ('name', 'url', 'information', 'free_downloads', 'purchases')
 
 
 @register(WorkSource)
 class WorkSourceAdmin(ModelAdmin):
-    list_display = ('work', 'source')
+    list_display = ('work', 'source', 'price', 'epub_avail', 'kindle_avail')
