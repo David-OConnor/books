@@ -121,6 +121,9 @@ class WorkSource(models.Model):
     source = models.ForeignKey(Source, related_name='work_sources', on_delete=models.CASCADE)
     epub_avail = models.BooleanField()
     kindle_avail = models.BooleanField()
+    # Some sources, like goodreads, assign each book (or edition) a unique id,
+    # used internally.
+    internal_id = models.IntegerField(blank=True, null=True)
 
     price = models.FloatField(blank=True, null=True)
 
@@ -128,7 +131,7 @@ class WorkSource(models.Model):
     download_url = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
     class Meta:
-        unique_together = ('work', 'source')
+        unique_together = (('work', 'source'), ('source', 'internal_id'))
 
 
 class Resource(models.Model):
@@ -170,21 +173,9 @@ def populate_initial_sources():
     )
 
     Source.objects.update_or_create(
-        name='Project Gutenberg',
-        url='http://www.gutenberg.org/',
-        free_downloads=True
-    )
-
-    Source.objects.update_or_create(
         name='University of Adelaide Library',
         url='https://ebooks.adelaide.edu.au/',
         free_downloads=True
-    )
-
-    Source.objects.update_or_create(
-        name='LibraryThing',
-        url='https://www.librarything.com/',
-        information=True
     )
 
 

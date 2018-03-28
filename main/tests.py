@@ -83,3 +83,21 @@ class IsbnValidationTestCase(TestCase):
         # Should leave the input isbn intact.
         isbn = Isbn.new(1234567890123, self.dr)
         self.assertEqual(isbn.isbn, 1234567890123)
+
+
+class SourceUpdateTestCase(TestCase):
+    # Note that these won't verify that correct URLs exist.
+    def setUp(self):
+        dawkins = Author.objects.create(first_name="Richard", last_name="Dawkins")
+        self.selfish = Work.objects.create(title="The Selfish Gene", author=dawkins)
+        self.selfish_isbn = Isbn.new(9780199291151, self.selfish)
+
+    def test_goodreads(self):
+        # Import here, since importing these modules adds their source to the db.
+        from .src import goodreads
+        ws = goodreads.search_isbn(self.selfish_isbn)
+
+        self.assertEqual(ws.book_url, 'https://www.goodreads.com/book/show/9780199291151'
+)
+
+

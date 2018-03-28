@@ -9,3 +9,11 @@ import rdflib
 
 # Use this instead:
 # http://www.gutenberg.org/wiki/Gutenberg:Feeds
+from main.models import Source
+
+
+source, _ = Source.objects.get_or_create(
+        name='Project Gutenberg',
+        url='http://www.gutenberg.org/',
+        free_downloads=True
+    )

@@ -7,6 +7,7 @@ import itertools
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db.models import QuerySet
 
+from . import goodreads
 from ..models import Work, Isbn, Author
 from . import google
 
@@ -27,10 +28,8 @@ def update_sources(work: Work) -> None:
 
     # Use the work's ISBNs as unique identifiers.
     for isbn in work.isbns:
-        pass
-
-
-
+        gr_worksource = goodreads.search_isbn(isbn)
+        gr_worksource.save()
 
 
 def search(title: str, author: str) -> QuerySet:
