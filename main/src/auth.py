@@ -1,2 +1,5 @@
 GOOG_KEY = 'AIzaSyCkq--aEMpCrHz1ysyXsXZnCrJvmlS9X-I'
 LIBRARYTHING_KEY = '3904d0df354d1c27767315132a6e9d32'
+GOODREADS_KEY = 'uexbJbIA196PF5j5S7ZprQ'
+GOODREADS_SECRET = 'nMi8NxcGIt4QLJHiyuGuU5svgLoPJQ4KDcsyqheE'  # Not sure what this is for.
+

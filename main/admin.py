@@ -17,7 +17,7 @@ class AuthorAdmin(ModelAdmin):
 
 @register(Isbn)
 class IsbnAdmin(ModelAdmin):
-    list_display = ('isbn_10', 'isbn_13')
+    list_display = ('isbn', 'work')
 
 
 @register(Resource)

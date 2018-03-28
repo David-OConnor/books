@@ -1,3 +1,4 @@
+import pytest
 from django.test import TestCase
 
 from .models import Work, Author, Isbn
@@ -57,3 +58,28 @@ class SearchTestCase(TestCase):
     def test_search_author_only(self):
         self.assertEqual(list(db.search("", "Austen")),
                          [self.emma, self.pride, self.sense])
+
+    def test_garbled_title(self):
+        self.assertEqual(list(db.search("Scent Servility", "Jane Austen")),
+                         [])
+
+
+class IsbnValidationTestCase(TestCase):
+    def setUp(self):
+        mc = Author.objects.create(first_name="Anne", last_name="McCaffrey")
+        self.dr = Work.objects.create(title="Dragon Riders of Pern", author=mc)
+
+    def test_invalid_isbn(self):
+        # Test an ISBN that has a number of digits neither 13 nor 10.
+        with pytest.raises(AttributeError):
+            Isbn.new(123456, self.dr)
+
+    def test_convert_isbn_10(self):
+        # Should convert isbn10 format to isbn13.
+        isbn = Isbn.new(1234567890, self.dr)
+        self.assertEqual(isbn.isbn, 9781234567890)
+
+    def test_isbn_13(self):
+        # Should leave the input isbn intact.
+        isbn = Isbn.new(1234567890123, self.dr)
+        self.assertEqual(isbn.isbn, 1234567890123)

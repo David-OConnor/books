@@ -53,7 +53,7 @@ class IsbnSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Isbn
-        fields = ('isbn_10', 'isbn_13', 'publication_date')
+        fields = ('isbn', 'work')
 
 
 # class AuthorSerializer(serializers.HyperlinkedModelSerializer):

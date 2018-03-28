@@ -88,13 +88,32 @@ class Work(models.Model):
 
 class Isbn(models.Model):
     # A work may have multiple associated isbns, eg different editions.
+    isbn = models.BigIntegerField(primary_key=True)
+    # integerfield is too small for 13 digits; bigint may not be appropriate.
+    # isbn = models.CharField(max_length=13, primary_key=True)
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='isbns')
-    isbn_10 = models.TextField(unique=True)
-    isbn_13 = models.TextField(unique=True)
-    publication_date = models.DateField(null=True)
+
+    publication_date = models.DateField(null=True, blank=True)
+
+    # todo add more detailed validators, either during the constructor new() method,
+    # todo or as an additional method.
+
+    @classmethod  # It may be better to do this with Djangon signals like pre_init?
+    def new(cls, isbn: int, work: Work, publication_date: dt.date=None):
+        """Use this method to create the model; validates the ISBN, and converts
+        10-digit format to 13."""
+        isbn_len = len(str(isbn))
+        if isbn_len == 13:
+            validated_isbn = isbn
+        elif isbn_len == 10:
+            validated_isbn = int('978' + str(isbn))
+        else:
+            raise AttributeError("ISBN must be a 10 or 13-digit number")
+
+        return cls(isbn=validated_isbn, work=work, publication_date=publication_date)
 
     def __str__(self):
-        return f"isbn 10:{self.isbn_10} isbn 13: {self.isbn_13}"
+        return f"isbn 13: {self.isbn}"
 
 
 class WorkSource(models.Model):
@@ -107,6 +126,9 @@ class WorkSource(models.Model):
 
     book_url = models.CharField(max_length=100, blank=True, null=True, unique=True)
     download_url = models.CharField(max_length=100, blank=True, null=True, unique=True)
+
+    class Meta:
+        unique_together = ('work', 'source')
 
 
 class Resource(models.Model):
@@ -194,3 +216,50 @@ def populate_initial_resources():
         website_url="http://www.aldiko.com/",
         download_url="http://aldiko.com/download.html"
     )
+
+
+def populate_initial_works():
+    sagan, _ = Author.objects.get_or_create(first_name="Carl", last_name="Sagan")
+    stephenson, _ = Author.objects.get_or_create(first_name="Neal",
+                                       last_name="Stephenson")
+    austen, _ = Author.objects.get_or_create(first_name="Jane", last_name="Austen")
+    homer, _ = Author.objects.get_or_create(first_name="Homer", last_name="")
+    dante, _ = Author.objects.get_or_create(first_name="Dante", last_name="Alighieri")
+    hemingway, _ = Author.objects.get_or_create(first_name="Ernest",
+                                      last_name="Hemingway")
+
+    Work.objects.update_or_create(title="Pale Blue Dot", author=sagan)
+    Work.objects.update_or_create(title="Contact", author=sagan)
+    Work.objects.update_or_create(title="Cosmos", author=sagan)
+
+    Work.objects.update_or_create(title="Seveneves", author=stephenson)
+    Work.objects.update_or_create(title="The Diamond Age",
+                                           author=stephenson)
+    Work.objects.update_or_create(title="Snow Crash",
+                                          author=stephenson)
+
+    Work.objects.update_or_create(title="Emma", author=austen)
+    Work.objects.update_or_create(title="Pride and Prejudice",
+                                     author=austen)
+    Work.objects.update_or_create(title="Sense and Sensibility",
+                                     author=austen)
+
+    Work.objects.update_or_create(title="The Illiad", author=homer)
+    Work.objects.update_or_create(title="The Odyssey", author=homer)
+
+    Work.objects.update_or_create(title="The Divine Comedy", author=dante)
+    Work.objects.update_or_create(title="Purgatory", author=dante)
+    Work.objects.update_or_create(title="Purgatorio", author=dante)
+    Work.objects.update_or_create(title="Inferno", author=dante)
+
+    Work.objects.update_or_create(title="The Sun Also Rises",
+                                   author=hemingway)
+    Work.objects.update_or_create(title="For Whom the Bell Tolls",
+                                    author=hemingway)
+    
+    
+def populate_initial() -> None:
+    """Populate initial value from the other populators."""
+    populate_initial_resources()
+    populate_initial_sources()
+    populate_initial_works()

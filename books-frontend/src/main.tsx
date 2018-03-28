@@ -44,8 +44,9 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
     render() {
         return (
             <Form inline={true}>
+                <h4>Search by title, author, or ISBN:</h4>
                 <FormGroup controlId="searchBox" >
-                    <ControlLabel>Search by title, author, or ISBN:</ControlLabel>
+                    {/*<ControlLabel>Search by title, author, or ISBN:</ControlLabel>*/}
                     <FormControl
                         type="text"
                         value={this.state.title}
@@ -62,18 +63,24 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                     />
                     <FormControl.Feedback />
 
+                    {/* type as submit so enter works, but preventdefault to prevent
+                    the associated page reload. */}
                     <Button
-                        type="button"
-                        onClick={() => axios.post(
-                            'http://localhost:8000/api/search',
-                            {title: this.state.title, author: this.state.author}
-                        ).then(
-                            (resp) => {
-                                this.props.dispatch({
-                                    type: 'replaceBooks',
-                                    books: resp.data
-                                })}
-                        )}
+                        type="submit"
+                        bsStyle="primary"
+                        onClick={(e) => {
+                            e.preventDefault()
+
+                            axios.post(
+                                'http://localhost:8000/api/search',
+                                {title: this.state.title, author: this.state.author}
+                            ).then(
+                                (resp) => {
+                                    this.props.dispatch({
+                                        type: 'replaceBooks',
+                                        books: resp.data
+                                    })}
+                            )}}
                     >Search
                     </Button>
                 </FormGroup>
@@ -94,34 +101,50 @@ const Book = ({book}: {book: Work}) => {
         ws => ws.source.purchases
     )
 
-    let infoItems = []
-    for (let item of book.work_sources) {
-        // todo temp filler
-        infoItems.push(
-            <p key={item.id}>
-                <a href={item.book_url}>{item.source.name}</a>
-            </p>
-        )
-    }
+    // Display a message if there are no free sources.
+    const free = freeSources.length ?
+        freeSources.map(s => (
+            <div key={s.id}>
+                <p>
+                    <a href={s.book_url}>{s.source.name}</a>
+                </p>
+
+                <p>
+                    <a href={s.download_url}>Download</a>
+                </p>
+            </div>
+        )) :
+        <h5>No free sources available 🙁 </h5>
 
     return (
-    <Row style={{marginTop: 40}}>
-        <h4>{book.title},
-            by: {`${book.author.first_name} ${book.author.last_name}`}</h4>
+        <Row style={{marginTop: 40}}>
+            <h4>{book.title},
+                by: {`${book.author.first_name} ${book.author.last_name}`}</h4>
 
-        <Col xs={4} style={{background: '#ffefcc'}}>
-            <h4>Information</h4>
-            {infoItems}
-        </Col>
+            <Col xs={4} style={{background: '#ffefcc'}}>
+                <h4>Information</h4>
+                {/* todo show a text summary here. */}
+                {infoSources.map(s =>
+                    <p key={s.id}>
+                        <a href={s.book_url}>{s.source.name}</a>
+                    </p>
+                )}
+            </Col>
 
-        <Col xs={4} style={{background: '#e8e7ff'}}>
-            <h4>Free downloads</h4>
-        </Col>
+            <Col xs={4} style={{background: '#e8e7ff'}}>
+                <h4>Free downloads</h4>
+                {free}
+            </Col>
 
-        <Col xs={4} style={{background: '#e3ffeb'}}>
-            <h4>Stores</h4>
-        </Col>
-    </Row>
+            <Col xs={4} style={{background: '#e3ffeb'}}>
+                <h4>Stores</h4>
+                {purchaseSources.map(s =>
+                    <p key={s.id}>
+                        <a href={s.book_url}>{s.source.name}</a>
+                    </p>
+                )}
+            </Col>
+        </Row>
     )
 }
 
@@ -182,7 +205,7 @@ const AboutPage = () => (
 )
 
 const Menu = ({dispatch}: {dispatch: Function}) => (
-    <Col sm={6} smOffset={4}>
+    <Col xs={8} xsOffset={4}>
         <ButtonGroup>
             <Button
                 onClick={() => {
