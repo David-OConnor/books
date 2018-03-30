@@ -1,128 +1,120 @@
 from collections import namedtuple
-from difflib import SequenceMatcher
-from typing import Tuple, List
+import datetime as dt
+from typing import Tuple, List, Iterator, Optional, NamedTuple
 
 import requests
 import saturn
-
-# from .auth import GOOG_KEY as key
-
-
-# This file taken from the older books project.
 from saturn.from_arrow import ParserError
 
-Book2 = namedtuple('Book', ['title', 'authors', 'isbn_10', 'isbn_13',
-                            'publication_date', 'categories'])
+from main.models import Source
+from .auth import GOOG_KEY as KEY
+
+
+# Overall notes: Robust API, but some parts are no longer being maintained.
+# Prime candidate to populate new entries in our DB>
+
+# This file taken from the older books project.
+
+
+class gBook(NamedTuple):
+    title: str
+    authors: List[str]
+    isbn: int
+    description: Optional[str]
+    publication_date: Optional[dt.date]
+    categories: List[str]
+
+    book_url: Optional[str]
+    epub_url: Optional[str]
+    pdf_url: Optional[str]
+    purchase_url: Optional[str]
+
+    price: Optional[float]
+
 
 base_url = 'https://www.googleapis.com/books/v1/'
 
 
-def search_title(title):
+def search_isbn(isbn: str='0671004107'):
+    # todo search by ISBN on Google is currently broken.
     url = base_url + 'volumes'
-    payload = {'q': 'intitle:"{}"'.format(title),
-               'printType': 'books',
-               'projection': 'full'}
+    payload = {
+        'q': f'ISBN:"{isbn}"',
+        'printType': 'books',  # Perhaps avoids magazine etc.
+        # 'projection': 'full',
+        'filter': 'ebooks',
+    }
 
     result = requests.get(url, params=payload)
+    return result.json()
 
     result = result.json()
     result = [book['volumeInfo'] for book in result['items']]
 
-    return _trim_results(result)
+    return result
 
 
-def search_author(author):
+def search_title_author(title: str, author: str) -> Optional[Iterator[gBook]]:
+    # todo search by ISBN on Google is currently broken.
     url = base_url + 'volumes'
-    payload = {'q': 'inauthor:"{}"'.format(author),
-               'printType': 'books'}
+    payload = {
+        'q': f'intitle:"{title}"inauthor:"{author}"',
+        'printType': 'books',
+        # 'projection': 'full',
+        # 'filter': 'ebooks',
+        # 'key': KEY # todo necesary?
+    }
 
-    result = requests.get(url, params=payload)
-
-    result = result.json()
-    result = [book['volumeInfo'] for book in result['items']]
-
-    return _trim_results(result)
-
-
-def search(title='', author='') -> List[Book2]:
-    # The author/title composite match ratio must exceed this to be returned.
-    min_match_ratio = 0
-
-    url = base_url + 'volumes'
-    payload = {'q': f'intitle:{title}+inauthor:{author}',
-               'printType': 'books'}
-
-    result = requests.get(url, params=payload)
-
-    result = result.json()
-
+    result = requests.get(url, params=payload).json()
     items = result.get('items')
-    if not items:  # ie no results from Google.
-        return []
+    if not items:
+        return
 
-    result = [book['volumeInfo'] for book in items]
-
-    trimmed = _trim_results(result)
-
-    ratios = []
-    for book in trimmed:
-        title_ratio = SequenceMatcher(None, title.lower(), book.title.lower()).ratio()
-
-        author_ratios = [SequenceMatcher(None, author.lower(), author_goog.lower()).ratio() for
-                         author_goog in book.authors]
-        # We're only searching for one author, so find the best match in the
-        # authors list google returns, and ignore the rest.  Note that authors
-        # may be empty.
-        best_author_ratio = max(author_ratios) if author_ratios else 0
-        composite = composite_ratio(title_ratio, best_author_ratio)
-        ratios.append((book, title_ratio, best_author_ratio, composite))
-
-    sequenced = sorted(ratios, key=lambda x: x[3], reverse=True)
-    filtered = filter(lambda x: x[3] >= min_match_ratio, sequenced)
-
-    return list(filtered)
+    return _trim_results(items)
 
 
-def composite_ratio(ratio_1: float, ratio_2: float) -> float:
-    try:
-        return 1 / (1/ratio_1 + 1/ratio_2)
-    except ZeroDivisionError:
-        return 0
-
-
-def _trim_results(raw_data) -> List[Book2]:
+def _trim_results(items: List[dict]) -> Iterator[gBook]:
     """Reformat raw Google Books api data into a format with only information
     we care about."""
-    result = []
-    for book in raw_data:
+    for book in items:
+
+        volume = book['volumeInfo']
+
+        authors = volume.get('authors')
+        if not authors:  # If authors is blank, just move on.
+            continue
+
+        idents = volume.get('industryIdentifiers')
+        if not idents:
+            continue
+
+        isbn = [ident for ident in idents if ident['type'] == 'ISBN_13']
+        if not isbn:
+            continue
+        isbn = int(isbn[0]['identifier'])
+
+        price = book['saleInfo'].get('retailPrice')
+        if price:
+            price = price['amount']
+
         try:
-            pub_date = saturn.from_str(book['publishedDate'], 'YYYY-MM-DD')
+            pub_date = saturn.from_str(volume['publishedDate'], 'YYYY-MM-DD')
         except ParserError:  # Might be just a year
-            pub_date = book['publishedDate']
+            pub_date = saturn.from_str(f"{volume['publishedDate']}-01-01", 'YYYY')
         except KeyError:
-            pub_date = 'missing'
+            pub_date = None
 
-        isbn_10 = ''
-        isbn_13 = ''
-        try:
-            isbn_raw = book['industryIdentifiers']
+        yield gBook(
+            title=volume['title'],
+            authors=authors,
+            isbn=isbn,
+            description=volume.get('description'),
+            publication_date=pub_date,
+            categories=volume.get('categories', []),
 
-            for num in isbn_raw:
-                if num['type'] == 'ISBN_13':
-                    isbn_13 = num['identifier']
-                elif num['type'] == 'ISBN_10':
-                    isbn_10 = num['identifier']
-
-        # This keyerror means 'industryIdentifiers' is missing entirely; if
-        # it's present, but doens't have 'isbn_13/10' subkeys, it doesn't
-        # come up.
-        except KeyError:
-            pass
-
-        authors = book.get('authors', [])  # authors may not be present.
-        categories = book.get('categories', [])
-
-        result.append(
-            Book2(book['title'], authors, isbn_10, isbn_13, pub_date, categories)
+            book_url=volume.get('infoLink'),
+            epub_url=book['accessInfo']['epub'].get('downloadLink'),
+            pdf_url=book['accessInfo']['pdf'].get('downloadLink'),
+            purchase_url=book['saleInfo'].get('buyLink'),
+            price=price,
         )
-    return result

@@ -50,7 +50,7 @@ class Source(models.Model):
 # Create your models here.
 # todo Work?
 class Work(models.Model):
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=100)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
 
     genre = models.CharField(
@@ -119,16 +119,18 @@ class Isbn(models.Model):
 class WorkSource(models.Model):
     work = models.ForeignKey(Work, related_name='work_sources', on_delete=models.CASCADE,)
     source = models.ForeignKey(Source, related_name='work_sources', on_delete=models.CASCADE)
-    epub_avail = models.BooleanField()
-    kindle_avail = models.BooleanField()
+
     # Some sources, like goodreads, assign each book (or edition) a unique id,
     # used internally.
     internal_id = models.IntegerField(blank=True, null=True)
 
     price = models.FloatField(blank=True, null=True)
 
-    book_url = models.CharField(max_length=100, blank=True, null=True, unique=True)
-    download_url = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    book_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
+    epub_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
+    kindle_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
+    pdf_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
+    purchase_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
 
     class Meta:
         unique_together = (('work', 'source'), ('source', 'internal_id'))

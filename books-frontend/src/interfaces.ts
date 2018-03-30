@@ -16,11 +16,14 @@ export interface Source {
 export interface WorkSource {
     id: number
     source: Source
-    epub_avail: boolean
-    kindle_avail: boolean
-    book_url: string
-    download_url: string
+
     price: number
+
+    book_url: string
+    epub_url: string
+    kindle_url: string
+    pdf_url: string
+    purchase_url: string
 }
 
 export interface Work {

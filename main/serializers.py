@@ -25,8 +25,8 @@ class WorkSourceSerializer(serializers.ModelSerializer):
         # Don't include work here, since we're passing worksource as a child
         # of work.  Source gets passed as a child of this.
         # Include id, for React keys.
-        fields = ('id', 'source', 'epub_avail', 'kindle_avail', 'price',
-                  'book_url', 'download_url')
+        fields = ('id', 'source', 'book_url', 'epub_url', 'kindle_url', 'pdf_url',
+                  'price', 'purchase_url')
         depth = 1
 
 
@@ -53,7 +53,7 @@ class IsbnSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Isbn
-        fields = ('isbn', 'work')
+        fields = ('isbn', 'work', 'publication_date')
 
 
 # class AuthorSerializer(serializers.HyperlinkedModelSerializer):

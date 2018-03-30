@@ -91,30 +91,49 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
 }
 
 const Book = ({book}: {book: Work}) => {
-    const infoSources = book.work_sources.filter(
-        ws => ws.source.information
-    )
-    const freeSources = book.work_sources.filter(
-        ws => ws.source.free_downloads
-    )
-    const purchaseSources = book.work_sources.filter(
-        ws => ws.source.purchases
-    )
 
-    // Display a message if there are no free sources.
-    const free = freeSources.length ?
-        freeSources.map(s => (
-            <div key={s.id}>
-                <p>
-                    <a href={s.book_url}>{s.source.name}</a>
-                </p>
+    // todo add description, genre, cover etc here.
 
-                <p>
-                    <a href={s.download_url}>Download</a>
+    const infoSources = book.work_sources.map(ws =>
+        (
+            <div key={ws.id}>
+                <h5>{ws.source.name}</h5>
+                <p key={ws.id}>
+                    {ws.book_url ? <a href={ws.book_url}>Info</a> : null}
                 </p>
             </div>
-        )) :
-        <h5>No free sources available 🙁 </h5>
+        )
+    )
+
+    const freeSources = book.work_sources.map(ws =>
+        (
+            <div key={ws.id}>
+                <h5>{ws.source.name}</h5>
+                <p>
+                    {ws.epub_url ? <a href={ws.epub_url}>Epub</a> : null}
+                </p>
+                <p>
+                    {ws.pdf_url ? <a href={ws.pdf_url}>Pdf</a> : null}
+                </p>
+                <p>
+                    {ws.kindle_url ? <a href={ws.kindle_url}>Kindle</a> : null}
+                </p>
+            </div>
+        )
+    )
+
+    const purchaseSources = book.work_sources.map(ws =>
+        (
+            <div key={ws.id}>
+                <h5>{ws.source.name}</h5>
+                <p key={ws.id}>
+                    {ws.purchase_url ? <a href={ws.purchase_url}>Buy for ${ws.price}</a> : null}
+                </p>
+            </div>
+        )
+    )
+
+    //     <h5>No free sources available 🙁 </h5>
 
     return (
         <Row style={{marginTop: 40}}>
@@ -123,27 +142,19 @@ const Book = ({book}: {book: Work}) => {
 
             <Col xs={4} style={{background: '#ffefcc'}}>
                 <h4>Information</h4>
-                {/* todo show a text summary here. */}
-                {infoSources.map(s =>
-                    <p key={s.id}>
-                        <a href={s.book_url}>{s.source.name}</a>
-                    </p>
-                )}
+                {infoSources}
             </Col>
 
             <Col xs={4} style={{background: '#e8e7ff'}}>
                 <h4>Free downloads</h4>
-                {free}
+                {freeSources}
             </Col>
 
             <Col xs={4} style={{background: '#e3ffeb'}}>
                 <h4>Stores</h4>
-                {purchaseSources.map(s =>
-                    <p key={s.id}>
-                        <a href={s.book_url}>{s.source.name}</a>
-                    </p>
-                )}
+                {purchaseSources}
             </Col>
+
         </Row>
     )
 }
@@ -208,17 +219,7 @@ const Menu = ({dispatch}: {dispatch: Function}) => (
     <Col xs={8} xsOffset={4}>
         <ButtonGroup>
             <Button
-                onClick={() => {
-                    dispatch({type: 'changePage', page: 'home'})
-
-                    axios.get('http://localhost:8000/api/books').then(
-                        (resp) =>
-                            dispatch({
-                                type: 'replaceBooks',
-                                books: resp.data.results
-                            })
-                    )
-                }}
+                onClick={() => dispatch({type: 'changePage', page: 'home'})}
             >
                 Home
             </Button>

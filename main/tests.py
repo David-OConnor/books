@@ -1,8 +1,9 @@
 import pytest
 from django.test import TestCase
+import saturn
 
 from .models import Work, Author, Isbn
-from .src import db
+from .src import db, google
 
 
 class SearchTestCase(TestCase):
@@ -97,7 +98,27 @@ class SourceUpdateTestCase(TestCase):
         from .src import goodreads
         ws = goodreads.search_isbn(self.selfish_isbn)
 
-        self.assertEqual(ws.book_url, 'https://www.goodreads.com/book/show/9780199291151'
+        self.assertEqual(ws.book_url, 'https://www.goodreads.com/book/show/61535'
 )
+
+
+class AddWorksTestCase(TestCase):
+    def setUp(self):
+        dawkins = Author.objects.create(first_name="Richard", last_name="Dawkins")
+        self.selfish = Work.objects.create(title="The Selfish Gene", author=dawkins)
+        self.selfish_isbn = Isbn.new(9780192860927, self.selfish)
+
+    def test_google_query(self):
+        from .src import google
+
+        description = ("An ethologist shows man to be a gene machine whose "
+                       "world is one of savage competition and deceit")
+        expected = google.gBook('The Selfish Gene', ['Richard Dawkins'], 9780192860927,
+                                description, saturn.date(1989, 1, 1), ['Literary Criticism'])
+        # top result here
+        queried = next(google.search_title_author('selfish gene', 'dawkins'))
+
+        self.assertEqual(queried, expected)
+
 
 

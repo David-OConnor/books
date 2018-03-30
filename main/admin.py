@@ -32,4 +32,4 @@ class SourceAdmin(ModelAdmin):
 
 @register(WorkSource)
 class WorkSourceAdmin(ModelAdmin):
-    list_display = ('work', 'source', 'price', 'epub_avail', 'kindle_avail')
+    list_display = ('work', 'source', 'price')
