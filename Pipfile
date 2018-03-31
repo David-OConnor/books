@@ -25,6 +25,7 @@ requests = "*"
 saturn = "*"
 rdflib = "*"
 untangle = "*"
+requests-html = "*"
 
 
 [dev-packages]

@@ -4,14 +4,12 @@ from typing import List, Iterator, Optional
 
 import itertools
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db import IntegrityError
 from django.db.models import QuerySet
 
 from . import goodreads
 from ..models import Work, Isbn, Author, WorkSource, Source
-from . import google
-
-
-
+from . import google, adelaide
 
 
 def update_db_from_gutenberg() -> None:
@@ -20,15 +18,38 @@ def update_db_from_gutenberg() -> None:
     pass
 
 
+def update_all() -> None:
+    for work in Work.objects.all():
+        update_sources(work)
+
 
 def update_sources(work: Work) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
 
+    # Update from Uni of Adelaide
+
+    # todo for adelaide, you should search each of their pages to build a catalog
+    # todo rather than hitting their site for each book. Or at least catch the pages.
+    adelaide_url = adelaide.search_title(work.title, work.author.last_name)
+    if adelaide_url:
+        adelaide_source = Source.objects.get(name='University of Adelaide')
+
+        # All books on Adelaide include in-browser reading, with links to epub and mobi.
+        try:
+            WorkSource.objects.update_or_create(
+                work=work,
+                source=adelaide_source,
+                epub_url=adelaide_url,
+                kindle_url=adelaide_url,
+            )
+        except IntegrityError:
+            pass  # todo why do we get this on update_or_create??
+
     # Use the work's ISBNs as unique identifiers.
-    for isbn in work.isbns:
-        gr_worksource = goodreads.search_isbn(isbn)
-        gr_worksource.save()
+    # for isbn in work.isbns:
+    #     gr_worksource = goodreads.search_isbn(isbn)
+    #     gr_worksource.save()
 
 
 def search_local(title: str, author: str) -> QuerySet:

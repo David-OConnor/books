@@ -93,12 +93,12 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
 const Book = ({book}: {book: Work}) => {
 
     // todo add description, genre, cover etc here.
-
+    const indent = 20
     const infoSources = book.work_sources.map(ws =>
         (
             <div key={ws.id}>
-                <h5>{ws.source.name}</h5>
-                <p key={ws.id}>
+                <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
+                <p style={{textIndent: indent}}>
                     {ws.book_url ? <a href={ws.book_url}>Info</a> : null}
                 </p>
             </div>
@@ -108,14 +108,14 @@ const Book = ({book}: {book: Work}) => {
     const freeSources = book.work_sources.map(ws =>
         (
             <div key={ws.id}>
-                <h5>{ws.source.name}</h5>
-                <p>
+                <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
+                <p style={{textIndent: indent}}>
                     {ws.epub_url ? <a href={ws.epub_url}>Epub</a> : null}
                 </p>
-                <p>
+                <p style={{textIndent: indent}}>
                     {ws.pdf_url ? <a href={ws.pdf_url}>Pdf</a> : null}
                 </p>
-                <p>
+                <p style={{textIndent: indent}}>
                     {ws.kindle_url ? <a href={ws.kindle_url}>Kindle</a> : null}
                 </p>
             </div>
@@ -125,8 +125,8 @@ const Book = ({book}: {book: Work}) => {
     const purchaseSources = book.work_sources.map(ws =>
         (
             <div key={ws.id}>
-                <h5>{ws.source.name}</h5>
-                <p key={ws.id}>
+                <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
+                <p style={{textIndent: indent}}>
                     {ws.purchase_url ? <a href={ws.purchase_url}>Buy for ${ws.price}</a> : null}
                 </p>
             </div>
