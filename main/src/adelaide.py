@@ -1,72 +1,69 @@
-import difflib
+from string import ascii_uppercase
 from difflib import SequenceMatcher
+import re
 from typing import Optional, NamedTuple
 
 from requests_html import HTMLSession
 
+from main.models import AdelaideWork
 
 BASE_URL = 'https://ebooks.adelaide.edu.au/meta/titles/'
 
 
-class Book:
-    def __init__(self, index, title, author, match_ratio):
-        self.index = index
-        self.title = title
-        self.author = author
-        self.match_ratio = match_ratio
-
-    def __repr__(self):
-        return f"{self.title}, by {self.author}. Match: {self.match_ratio}"
-
-# need match_ratio to be mutable.
 # class Book(NamedTuple):
-#     index: int
 #     title: str
-#     author: str
-#     match_ratio: float
+#     author_first: str
+#     author_last: str
+#     translator: Optional[str]
+#     url: str
 
 
-def search_title(title: str, author: str) -> Optional[str]:
-    """Find a direct link to a book from the University of Adelaide, by crawling
-    their website."""
-    MATCH_THRESH = .7
-    # title must be included, so we know which alphabetical page to look up.
-
+def crawl() -> None:
+    """Pull all information from Adelaide's site, by crawling each of its 26
+    alphbetical title listings."""
     session = HTMLSession()
-    # Adelaide's site categorizes books by title letter.
-    r = session.get(BASE_URL + title[0].upper())
 
-    works = r.html.find('.works', first=True)
-    links = works.find('a')
+    split_title_author_re = r'(.*) / (.*?)(with an introduction.*)? \[\d{4}\]'
+    split_translator_re = r'(.*); translated (.*)'
 
-    # todo include author match as well.
-    books = []
-    for i, link in enumerate(links):
-        split = link.text.split('/')
+    for letter in ascii_uppercase:
+        r = session.get(BASE_URL + letter)
+        work_div = r.html.find('.works', first=True)
 
-        if len(split) == 2:
-            title2, author2 = split
-        elif len(split) == 1:
-            title2 = split[0]
-            author2 = ''
-        else:
-            continue
+        works = work_div.find('a')
 
-        books.append(Book(i, title2, author2, 0))
+        for work in works:
+            # Pull title from link text
+            match = re.match(split_title_author_re, work.text)
+            if not match:
+                continue
+            title, author, _ = match.groups()
 
-    for book in books:
-        title_ratio = SequenceMatcher(None, title, book.title).ratio()
-        author_ratio = SequenceMatcher(None, author, book.author).ratio()
+            translator = None
+            translator_match = re.match(split_translator_re, author)
+            if translator_match:
+                author, translator = translator_match.groups()
 
-        # todo more sophisticated way of mixing the ratios!
-        book.match_ratio = title_ratio + author_ratio/2
+            # Divide author into first and last names.
+            # Note: This is imperfect.
+            author = author.split(' ')
+            if len(author) == 1:
+                author_first, author_last = '', author[0]
+            else:
+                *author_first, author_last = author
+                author_first = ' '.join(author_first)
 
-    best_match = max(books, key=lambda b: b.match_ratio)
+            if len(title) > 150 or len(author_first) > 100 or len(author_last) > 100:
+                continue
 
-    print(best_match)
-    if best_match.match_ratio < MATCH_THRESH:
-        return
+            AdelaideWork.objects.update_or_create(
+                title=title,
+                author_last=author_last,
 
+                defaults={
+                    'author_first': author_first,
+                    'translator': translator,
+                    'url': f"https://ebooks.adelaide.edu.au{work.attrs['href']}"
 
-
-    return f"https://ebooks.adelaide.edu.au{links[best_match.index].attrs['href']}"
+                }
+            )

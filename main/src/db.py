@@ -8,7 +8,7 @@ from django.db import IntegrityError
 from django.db.models import QuerySet
 
 from . import goodreads
-from ..models import Work, Isbn, Author, WorkSource, Source
+from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork
 from . import google, adelaide
 
 
@@ -23,28 +23,42 @@ def update_all() -> None:
         update_sources(work)
 
 
+def update_sources_adelaide(work: Work) -> None:
+    """Update from the University of Adelaide, using their info cached in our DB."""
+    # todo dry from search_local:
+    title_v = SearchVector('title', weight='A')
+
+    title_matches = AdelaideWork.objects.filter(title__search=work.title)
+
+    author_last_v = SearchVector('author_last', weight='A')
+    # author_first_v = SearchVector('first_name', weight='B')
+    # v = author_last_v + author_first_v
+
+    combined_matches = title_matches.annotate(search=author_last_v).filter(
+        search=work.author.last_name
+    )
+    if not combined_matches:
+        return
+
+    best = combined_matches.first()
+
+    # All books on Adelaide include in-browser reading, with links to epub and mobi.
+    WorkSource.objects.update_or_create(
+        work=work,
+        source=Source.objects.get(name='University of Adelaide'),
+        defaults={
+            'epub_url': best.url,
+            'kindle_url': best.url,
+        }
+    )
+
+
 def update_sources(work: Work) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
 
-    # Update from Uni of Adelaide
+    update_sources_adelaide(work)
 
-    # todo for adelaide, you should search each of their pages to build a catalog
-    # todo rather than hitting their site for each book. Or at least catch the pages.
-    adelaide_url = adelaide.search_title(work.title, work.author.last_name)
-    if adelaide_url:
-        adelaide_source = Source.objects.get(name='University of Adelaide')
-
-        # All books on Adelaide include in-browser reading, with links to epub and mobi.
-        try:
-            WorkSource.objects.update_or_create(
-                work=work,
-                source=adelaide_source,
-                epub_url=adelaide_url,
-                kindle_url=adelaide_url,
-            )
-        except IntegrityError:
-            pass  # todo why do we get this on update_or_create??
 
     # Use the work's ISBNs as unique identifiers.
     # for isbn in work.isbns:
@@ -72,6 +86,39 @@ def search_local(title: str, author: str) -> QuerySet:
     return works.filter(author__in=authors) if author else works
 
 
+def filter_chaff(title: str, author: str) -> bool:
+    # todo add tests for this
+    # Keywords in titles that indicate it's not the book you're looking for.
+    TITLE_CHAFF = [
+        'abridged',
+        'condensed',
+        'classroom',
+        'related readings',
+        'reader\'s companion',
+        'tie-in',
+        'literature unit',
+        'cinematic',
+        'guide',
+        'handbook',
+        'collector',
+        'movie',
+    ]
+
+    AUTHOR_CHAFF = [
+        'press',
+        'limited',
+    ]
+
+    # Test if it's a weird, non-original version.
+    for chaff in TITLE_CHAFF:
+        if chaff in title.lower():
+            return True
+    for chaff in AUTHOR_CHAFF:
+        if chaff in author.lower():
+            return True
+    return False
+
+
 def search_or_update(title: str, author: str) -> List[Work]:
     results = list(search_local(title, author))
 
@@ -87,6 +134,9 @@ def search_or_update(title: str, author: str) -> List[Work]:
 
     new_results = []
     for book in internet_results:
+        if filter_chaff(book.title, book.authors[0]):
+            continue
+
         # todo just top author for now.
         try:
             author_first, author_last = book.authors[0].split()
@@ -99,27 +149,36 @@ def search_or_update(title: str, author: str) -> List[Work]:
         new_work, _ = Work.objects.get_or_create(
             title=book.title,
             author=author,
-            genre=[],  # todo fix this
-            description=book.description,
-            publication_date=book.publication_date
+            defaults={
+                'genre': [],  # todo fix this
+                'description':  book.description,
+                # 'publication_date': book.publication_date
+            }
         )
+
         # Add the new ISBN to the database.
-        Isbn.objects.create(
+        Isbn.objects.update_or_create(
             isbn=book.isbn,
-            work=new_work,
-            publication_date=book.publication_date
+            defaults={
+                'work': new_work,
+                'publication_date': book.publication_date
+            }
         )
 
         # Update the Google work source here, since we already queried them.
         WorkSource.objects.update_or_create(
             source=source,
             work=new_work,
-            book_url=book.book_url,
-            epub_url=book.epub_url,
-            pdf_url=book.pdf_url,
-            purchase_url=book.purchase_url,
-            price=book.price
+            defaults={
+                'book_url': book.book_url,
+                'epub_url': book.epub_url,
+                'pdf_url': book.pdf_url,
+                'purchase_url': book.purchase_url,
+                'price': book.price
+            }
         )
+
+        update_sources(new_work)
 
         new_results.append(new_work)
     return new_results

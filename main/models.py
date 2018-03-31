@@ -51,7 +51,10 @@ class Source(models.Model):
 # todo Work?
 class Work(models.Model):
     title = models.CharField(max_length=100)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='works')
+
+    translator = models.ForeignKey(Author, blank=True, null=True, on_delete=models.CASCADE,
+                                   related_name='translations')
 
     genre = models.CharField(
         max_length=50, null=True, blank=True,
@@ -62,7 +65,7 @@ class Work(models.Model):
     description = models.TextField(blank=True, null=True)
 
     # todo currently duplicated pub date between here and ISBN.
-    publication_date = models.DateField(null=True, blank=True)
+    # publication_date = models.DateField(null=True, blank=True)
 
     def us_copyright_exp(self) -> bool:
         """Calculate if a book's copyright is expired in the US. From rules listed
@@ -84,6 +87,20 @@ class Work(models.Model):
     class Meta:
         ordering = ('author', 'title')
         unique_together = ('author', 'title')
+
+
+class AdelaideWork(models.Model):
+    title = models.CharField(max_length=150)
+    author_first = models.CharField(max_length=100)
+    author_last = models.CharField(max_length=100)
+    translator = models.CharField(max_length=150, blank=True, null=True)
+    url = models.CharField(max_length=150, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.title}, by {self.author_last}"
+
+    class Meta:
+        unique_together = ('author_last', 'title')
 
 
 class Isbn(models.Model):
@@ -150,64 +167,85 @@ class Config(models.Model):
 def populate_initial_sources():
     Source.objects.update_or_create(
         name='Google',
-        url='https://play.google.com/books/',
-        information=True,
-        free_downloads=True,
-        purchases=True,
+        defaults={
+            'url': 'https://play.google.com/books/',
+            'information': True,
+            'free_downloads': True,
+            'purchases': True,
+        }
+
     )
 
     Source.objects.update_or_create(
         name='Wikipedia',
-        url='https://www.wikipedia.org/',
-        information=True,
+        defaults={
+            'url': 'https://www.wikipedia.org/',
+            'information': True,
+        }
     )
 
     Source.objects.update_or_create(
         name='Amazon',
-        url='https://www.amazon.com/Kindle-eBooks/',
-        purchases=True
+        defaults={
+            'url': 'https://www.amazon.com/Kindle-eBooks/',
+            'purchases': True
+        }
     )
 
     Source.objects.update_or_create(
         name='Kobo',
-        url='https://www.kobo.com/',
-        purchases=True
+        defaults={
+            'url': 'https://www.kobo.com/',
+            'purchases': True
+        }
     )
 
     Source.objects.update_or_create(
         name='University of Adelaide Library',
-        url='https://ebooks.adelaide.edu.au/',
-        free_downloads=True
+        defaults={
+            'url': 'https://ebooks.adelaide.edu.au/',
+            'free_downloads': True
+        }
     )
 
 
 def populate_initial_resources():
     Resource.objects.update_or_create(
         name="Calibre",
-        description="Popular book viewer and editor with lots of options.",
-        website_url="https://calibre-ebook.com/",
-        download_url="https://calibre-ebook.com/download"
+        defaults={
+            'description': "Popular book viewer and editor with lots of options.",
+            'website_url': "https://calibre-ebook.com/",
+            'download_url': "https://calibre-ebook.com/download"
+        }
+
     )
 
     Resource.objects.update_or_create(
         name="Microsoft Edge",
-        description="Epub viewer built into Windows 10",
-        website_url="https://support.microsoft.com/en-us/help/4014945/windows-10-read-books-in-the-browser",
-        download_url=""
+        defaults={
+            'description': "Epub viewer built into Windows 10",
+            'website_url': "https://support.microsoft.com/en-us/help/4014945/windows-10-read-books-in-the-browser",
+            'download_url': ""
+        }
     )
 
     Resource.objects.update_or_create(
         name="Moon+",
-        description="Popular book viewer for Android",
-        website_url="http://www.moondownload.com/",
-        download_url="http://www.moondownload.com/download.html"
+        defaults={
+            'description': "Popular book viewer for Android",
+            'website_url': "http://www.moondownload.com/",
+            'download_url': "http://www.moondownload.com/download.html"
+        }
     )
+
 
     Resource.objects.update_or_create(
         name="Aldiko",
-        description="Popular book viewer for Android.",
-        website_url="http://www.aldiko.com/",
-        download_url="http://aldiko.com/download.html"
+        defaults={
+            'description': "Popular book viewer for Android.",
+            'website_url': "http://www.aldiko.com/",
+            'download_url': "http://aldiko.com/download.html"
+        }
     )
 
 

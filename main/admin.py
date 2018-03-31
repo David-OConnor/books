@@ -2,22 +2,32 @@ from django.contrib import admin
 
 from django.contrib.admin import ModelAdmin, register
 
-from .models import Work, Author, Isbn, Resource, Source, WorkSource
+from .models import Work, Author, Isbn, Resource, Source, WorkSource, \
+    AdelaideWork
 
 
 @register(Work)
 class WorkAdmin(ModelAdmin):
     list_display = ('title', 'author', 'genre')
+    search_fields = ('title', 'author')
+
+
+@register(AdelaideWork)
+class AdelaideWorkAdmin(ModelAdmin):
+    list_display = ('title', 'author_first', 'author_last', 'translator')
+    search_fields = ('title', 'author_first', 'author_last')
 
 
 @register(Author)
 class AuthorAdmin(ModelAdmin):
     list_display = ('first_name', 'last_name')
+    search_fields = ('first_name', 'last_name')
 
 
 @register(Isbn)
 class IsbnAdmin(ModelAdmin):
     list_display = ('isbn', 'work')
+    search_fields = ('isbn', 'work')
 
 
 @register(Resource)

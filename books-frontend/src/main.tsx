@@ -94,7 +94,9 @@ const Book = ({book}: {book: Work}) => {
 
     // todo add description, genre, cover etc here.
     const indent = 20
-    const infoSources = book.work_sources.map(ws =>
+
+    const infoSources = book.work_sources.filter(ws => ws.book_url)
+    const infoItems = infoSources.map(ws =>
         (
             <div key={ws.id}>
                 <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
@@ -105,7 +107,10 @@ const Book = ({book}: {book: Work}) => {
         )
     )
 
-    const freeSources = book.work_sources.map(ws =>
+    const freeSources = book.work_sources.filter(
+        ws => ws.epub_url || ws.kindle_url || ws.pdf_url
+    )
+    const freeItems = freeSources.map(ws =>
         (
             <div key={ws.id}>
                 <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
@@ -122,7 +127,8 @@ const Book = ({book}: {book: Work}) => {
         )
     )
 
-    const purchaseSources = book.work_sources.map(ws =>
+    const purchaseSources = book.work_sources.filter(ws => ws.purchase_url)
+    const purchaseItems = purchaseSources.map(ws =>
         (
             <div key={ws.id}>
                 <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
@@ -142,17 +148,17 @@ const Book = ({book}: {book: Work}) => {
 
             <Col xs={4} style={{background: '#ffefcc'}}>
                 <h4>Information</h4>
-                {infoSources}
+                {infoItems}
             </Col>
 
             <Col xs={4} style={{background: '#e8e7ff'}}>
                 <h4>Free downloads</h4>
-                {freeSources}
+                {freeItems}
             </Col>
 
             <Col xs={4} style={{background: '#e3ffeb'}}>
                 <h4>Stores</h4>
-                {purchaseSources}
+                {purchaseItems}
             </Col>
 
         </Row>
