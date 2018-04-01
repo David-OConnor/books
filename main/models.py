@@ -51,6 +51,9 @@ class Source(models.Model):
 # todo Work?
 class Work(models.Model):
     title = models.CharField(max_length=100)
+
+    # todo make authors a manytomany.
+    # author = models.ManyToManyField(Author, related_name='works')
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='works')
 
     translator = models.ForeignKey(Author, blank=True, null=True, on_delete=models.CASCADE,
@@ -115,7 +118,7 @@ class GutenbergWork(models.Model):
 
     @property  # Property for api compatibilty with AdelaideWork.
     def url(self) -> str:
-        return f'http://www.gutenberg.org/ebooks/{self.id}'
+        return f'http://www.gutenberg.org/ebooks/{self.book_id}'
 
     def __str__(self):
         return f"{self.title}, by {self.author_last}"
@@ -128,6 +131,7 @@ class Isbn(models.Model):
     # isbn = models.CharField(max_length=13, primary_key=True)
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='isbns')
 
+    language = models.CharField(max_length=30, null=True, blank=True)
     publication_date = models.DateField(null=True, blank=True)
 
     # todo add more detailed validators, either during the constructor new() method,

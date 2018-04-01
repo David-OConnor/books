@@ -1,5 +1,5 @@
-from typing import Iterator, NamedTuple, TextIO
 import re
+from typing import TextIO
 
 import requests
 
@@ -20,12 +20,19 @@ from main.models import Source, WorkSource, GutenbergWork
 # like the plain text index with title, author and id may be the best bet.
 
 
-def populate_from_index() -> None:
+def download_index() -> None:
+    """Downloads the gutenberg index file, and saves it locally."""
     INDEX_URL = 'http://www.gutenberg.org/dirs/GUTINDEX.ALL'
     r = requests.get(INDEX_URL)
+    # todo Consider where you should put this file.
+    with open('GUTINDEX.ALL', 'wb') as f:
+        f.write(r.content)
 
-    # Split into pairs of lines, which is what we're looking for
-    text = r.text.split('\r\n\r\n')
+
+def populate_from_index(filename: str='GUTINDEX.ALL') -> None:
+    with open(filename, encoding='utf8') as f:
+        # Split into pairs of lines, which is what we're looking for
+        text = f.read().split('\n\n')
 
     # todo: This regex isn't comprehensive; misses long titles
     # todo that extend onto the second line, foreign languages, etc
@@ -37,6 +44,9 @@ def populate_from_index() -> None:
         if not match:
             continue
         title, author, book_id = match.groups()
+
+        print(work)
+        print(title)
 
         # Divide author into first and last names.
         # Note: This is imperfect.

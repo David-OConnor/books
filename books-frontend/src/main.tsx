@@ -43,7 +43,7 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
 
     render() {
         return (
-            <Form inline={true}>
+            <Form inline={true} style={{textAlign: 'center'}}>
                 <h4>Search by title, author, or ISBN:</h4>
                 <FormGroup controlId="searchBox" >
                     {/*<ControlLabel>Search by title, author, or ISBN:</ControlLabel>*/}
@@ -166,13 +166,19 @@ const Book = ({book}: {book: Work}) => {
 }
 
 const HomePage = ({books, dispatch}: {books: Work[], dispatch: Function}) => (
-    <div>
-        <h1>Find and download ebooks</h1>
+    <Col sm={12} smOffset={0} style={{textAlign: 'center'}}>
+        <h1 style={{margin: 'auto'}}>Find and download ebooks</h1>
 
-        <SearchForm dispatch={dispatch} />
+        <Row style={{textAlign: 'center'}}>
+            <Col md={8} mdOffset={2}>
+                <SearchForm dispatch={dispatch} />
+            </Col>
 
-        {books.map(b => <Book key={b.id} book={b}/>)}
-    </div>
+            <Col xs={12} md={8} mdOffset={2}>
+                {books.map(b => <Book key={b.id} book={b}/>)}
+            </Col>
+        </Row>
+    </Col>
 )
 
 const Resource = ({resource}: {resource: Resource}) => (
@@ -222,7 +228,7 @@ const AboutPage = () => (
 )
 
 const Menu = ({dispatch}: {dispatch: Function}) => (
-    <Col xs={8} xsOffset={4}>
+    <Col xs={8} xsOffset={2} style={{textAlign: 'center'}}>
         <ButtonGroup>
             <Button
                 onClick={() => dispatch({type: 'changePage', page: 'home'})}
@@ -253,16 +259,12 @@ export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) 
     return (
         <div>
             <Grid>
-                <Row className="show-grid">
-
+                <Row>
                     <Menu dispatch={dispatch} />
-
                 </Row>
 
-                <Row className="show-grid">
-                    <Col sm={10} smOffset={1}>
-                        {activePage}
-                    </Col>
+                <Row>
+                    {activePage}
                 </Row>
             </Grid>
         </div>

@@ -2,7 +2,7 @@ import pytest
 from django.test import TestCase
 import saturn
 
-from .models import Work, Author, Isbn, GutenbergWork
+from .models import Work, Author, Isbn, GutenbergWork, Source, WorkSource
 from .src import db, google, gutenberg
 
 
@@ -41,27 +41,27 @@ class SearchTestCase(TestCase):
         self.bell = Work.objects.create(title="For Whom the Bell Tolls", author=hemingway)
 
     def test_search_exact_title_author(self):
-        self.assertEqual(list(db.search("Contact", "Carl Sagan")),
+        self.assertEqual(list(db.search_local("Contact", "Carl Sagan")),
                          [self.contact])
 
     def test_search_nearly_exact_title_author(self):
-        self.assertEqual(list(db.search("infern", "Dante Aligiery")),
+        self.assertEqual(list(db.search_local("infern", "Dante Aligiery")),
                          [self.inferno])
 
     def test_search_last_name_only(self):
-        self.assertEqual(list(db.search("emma", "austen")),
+        self.assertEqual(list(db.search_local("emma", "austen")),
                          [self.emma])
 
     def test_search_title_only(self):  # todo add two books with teh same/similar title; confirm you get both.
-        self.assertEqual(list(db.search("purgatory", "")),
+        self.assertEqual(list(db.search_local("purgatory", "")),
                          [self.purgatory, self.purgatorio])
 
     def test_search_author_only(self):
-        self.assertEqual(list(db.search("", "Austen")),
+        self.assertEqual(list(db.search_local("", "Austen")),
                          [self.emma, self.pride, self.sense])
 
     def test_garbled_title(self):
-        self.assertEqual(list(db.search("Scent Servility", "Jane Austen")),
+        self.assertEqual(list(db.search_local("Scent Servility", "Jane Austen")),
                          [])
 
 
@@ -113,8 +113,20 @@ class AddWorksTestCase(TestCase):
 
         description = ("An ethologist shows man to be a gene machine whose "
                        "world is one of savage competition and deceit")
-        expected = google.gBook('The Selfish Gene', ['Richard Dawkins'], 9780192860927,
-                                description, saturn.date(1989, 1, 1), ['Literary Criticism'])
+        expected = google.GBook(
+            title='The Selfish Gene',
+            authors=['Richard Dawkins'],
+            isbn=9780192860927,
+            description=description,
+            publication_date=saturn.date(1989, 1, 1),
+            categories=['Literary Criticism'],
+            book_url='http://books.google.jo/books?id=WkHO9HI7koEC&dq=intitle:%22selfish+gene%22inauthor:%22dawkins%22&hl=&as_pt=BOOKS&source=gbs_api',
+            epub_url=None,
+            pdf_url=None,
+            purchase_url=None,
+            price=None,
+        )
+
         # top result here
         queried = next(google.search_title_author('selfish gene', 'dawkins'))
 
@@ -123,15 +135,79 @@ class AddWorksTestCase(TestCase):
 
 class CachedAPIsTestCase(TestCase):
     def setUp(self):
-        pass
+        austen = Author.objects.create(first_name='Jane', last_name='Austen')
+        self.emma = Work.objects.create(title="Emma", author=austen)
+        self.sense = Work.objects.create(title="Sense and Sensibility", author=austen)
+
+        saunders = Author.objects.create(first_name='Marshall', last_name='Saunders')
+        self.the_king = Work.objects.create(title='The King of the Park', author=saunders)
+
+        emerson = Author.objects.create(first_name='P. H.', last_name='Emerson')
+        self.np = Work.objects.create(title='Naturalistic Photography', author=emerson)
+
+        rowe = Author.objects.create(first_name='Richard', last_name='Rowe')
+        self.boy = Work.objects.create(title='The Boy in the Bush', author=rowe)
+
+        self.gutenberg = Source.objects.create(
+            name='Project Gutenberg',
+            url='http://www.gutenberg.org/',
+            free_downloads=True
+        )
+
+        self.adelaide = Source.objects.create(
+            name='University of Adelaide Library',
+            url='https://ebooks.adelaide.edu.au/',
+            free_downloads=True
+        )
 
     def test_gutindex_parse(self):
         """Test parsing of a gutenberg plain text index file"""
-        with open('GUTINDEX_TEST.ALL') as f:
-            gutenberg.populate_from_index(f)
+        gutenberg.populate_from_index('GUTINDEX_TEST.ALL')
 
-        expected1 = GutenbergWork(
-            title='',
-            author='',
-            url='',
+        # expected1 = GutenbergWork(
+        #     title='',
+        #     author='',
+        #     url='',
+        # )
+
+    def test_update_adelaide_source(self):
+        for work in Work.objects.all():
+            db.update_sources_adelaide_gutenberg(work, True)
+
+    def test_update_gutenberg_source(self):
+        for work in Work.objects.all():
+            db.update_sources_adelaide_gutenberg(work, False)
+
+        the_king_url = 'http://www.gutenberg.org/ebooks/56831'
+        np_url = 'http://www.gutenberg.org/ebooks/56833'
+        boy_url = 'http://www.gutenberg.org/ebooks/56695'
+
+        the_king = WorkSource(
+            work=self.the_king,
+            source=self.gutenberg,
+            epub_url=the_king_url,
+            kindle_url=the_king_url
         )
+
+        np = WorkSource(
+            work=self.np,
+            source=self.gutenberg,
+            epub_url=np_url,
+            kindle_url=np_url
+        )
+
+        boy = WorkSource(
+            work=self.boy,
+            source=self.gutenberg,
+            epub_url=boy_url,
+            kindle_url=boy_url
+        )
+
+        query = list(WorkSource.objects.all())
+
+        self.assertIn(the_king, query)
+        self.assertIn(np, query)
+        self.assertIn(boy, query)
+
+
+

@@ -9,7 +9,7 @@ from .models import Work, Author, Isbn, Resource, Source, WorkSource, \
 @register(Work)
 class WorkAdmin(ModelAdmin):
     list_display = ('title', 'author', 'genre')
-    search_fields = ('title', 'author')
+    search_fields = ('title', 'author__last_name', 'author__first_name')
 
 
 @register(AdelaideWork)
@@ -32,8 +32,8 @@ class AuthorAdmin(ModelAdmin):
 
 @register(Isbn)
 class IsbnAdmin(ModelAdmin):
-    list_display = ('isbn', 'work')
-    search_fields = ('isbn', 'work')
+    list_display = ('isbn', 'work', 'language', 'publication_date')
+    search_fields = ('isbn', 'work', 'publication_date')
 
 
 @register(Resource)

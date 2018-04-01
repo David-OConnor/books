@@ -1,10 +1,6 @@
-# from enum import Enum  # todo temp for Option testing.
-
 from typing import List, Iterator, Optional
 
-import itertools
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db import IntegrityError
 from django.db.models import QuerySet
 
 from . import goodreads
@@ -21,11 +17,12 @@ def update_db_from_gutenberg() -> None:
 
 def update_all() -> None:
     for work in Work.objects.all():
-        update_sources(work)
+        update_worksources(work)
 
 
 def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
-    """Update from the University of Adelaide, using their info cached in our DB."""
+    """Update worksources from the University of Adelaide or Project Gutenberg,
+       using their info cached in our DB."""
     # adelaide is True if pulling from adelaide; false if from Gutenberg.
     # todo dry from search_local:
     if adelaide_:
@@ -60,7 +57,7 @@ def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
     )
 
 
-def update_sources(work: Work) -> None:
+def update_worksources(work: Work) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
 
@@ -112,6 +109,7 @@ def filter_chaff(title: str, author: str) -> bool:
         'collector',
         'movie',
         'literature',
+        'selected from'
     ]
 
     AUTHOR_CHAFF = [
@@ -171,7 +169,8 @@ def search_or_update(title: str, author: str) -> List[Work]:
             isbn=book.isbn,
             defaults={
                 'work': new_work,
-                'publication_date': book.publication_date
+                'publication_date': book.publication_date,
+                'language': book.language
             }
         )
 
@@ -188,7 +187,7 @@ def search_or_update(title: str, author: str) -> List[Work]:
             }
         )
 
-        update_sources(new_work)
+        update_worksources(new_work)
 
         new_results.append(new_work)
     return new_results

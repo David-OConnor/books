@@ -1,7 +1,5 @@
 from string import ascii_uppercase
-from difflib import SequenceMatcher
 import re
-from typing import Optional, NamedTuple
 
 from requests_html import HTMLSession
 

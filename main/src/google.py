@@ -16,10 +16,12 @@ from .auth import GOOG_KEY as KEY
 # This file taken from the older books project.
 
 
-class gBook(NamedTuple):
+class GBook(NamedTuple):
     title: str
     authors: List[str]
     isbn: int
+
+    language: Optional[str]
     description: Optional[str]
     publication_date: Optional[dt.date]
     categories: List[str]
@@ -54,7 +56,7 @@ def search_isbn(isbn: str='0671004107'):
     return result
 
 
-def search_title_author(title: str, author: str) -> Optional[Iterator[gBook]]:
+def search_title_author(title: str, author: str) -> Optional[Iterator[GBook]]:
     # todo search by ISBN on Google is currently broken.
     url = base_url + 'volumes'
     payload = {
@@ -73,7 +75,7 @@ def search_title_author(title: str, author: str) -> Optional[Iterator[gBook]]:
     return _trim_results(items)
 
 
-def _trim_results(items: List[dict]) -> Iterator[gBook]:
+def _trim_results(items: List[dict]) -> Iterator[GBook]:
     """Reformat raw Google Books api data into a format with only information
     we care about."""
     for book in items:
@@ -104,10 +106,11 @@ def _trim_results(items: List[dict]) -> Iterator[gBook]:
         except KeyError:
             pub_date = None
 
-        yield gBook(
+        yield GBook(
             title=volume['title'],
             authors=authors,
             isbn=isbn,
+            language=volume.get('language'),
             description=volume.get('description'),
             publication_date=pub_date,
             categories=volume.get('categories', []),
