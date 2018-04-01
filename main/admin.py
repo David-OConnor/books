@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 
 from .models import Work, Author, Isbn, Resource, Source, WorkSource, \
-    AdelaideWork
+    AdelaideWork, GutenbergWork
 
 
 @register(Work)
@@ -16,6 +16,12 @@ class WorkAdmin(ModelAdmin):
 class AdelaideWorkAdmin(ModelAdmin):
     list_display = ('title', 'author_first', 'author_last', 'translator')
     search_fields = ('title', 'author_first', 'author_last')
+
+
+@register(GutenbergWork)
+class GutenbergWorkAdmin(ModelAdmin):
+    list_display = ('title', 'author_first', 'author_last', 'book_id')
+    search_fields = ('title', 'author_first', 'author_last', 'book_id')
 
 
 @register(Author)

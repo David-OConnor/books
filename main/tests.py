@@ -2,8 +2,8 @@ import pytest
 from django.test import TestCase
 import saturn
 
-from .models import Work, Author, Isbn
-from .src import db, google
+from .models import Work, Author, Isbn, GutenbergWork
+from .src import db, google, gutenberg
 
 
 class SearchTestCase(TestCase):
@@ -121,4 +121,17 @@ class AddWorksTestCase(TestCase):
         self.assertEqual(queried, expected)
 
 
+class CachedAPIsTestCase(TestCase):
+    def setUp(self):
+        pass
 
+    def test_gutindex_parse(self):
+        """Test parsing of a gutenberg plain text index file"""
+        with open('GUTINDEX_TEST.ALL') as f:
+            gutenberg.populate_from_index(f)
+
+        expected1 = GutenbergWork(
+            title='',
+            author='',
+            url='',
+        )

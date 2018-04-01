@@ -103,6 +103,24 @@ class AdelaideWork(models.Model):
         unique_together = ('author_last', 'title')
 
 
+class GutenbergWork(models.Model):
+    # We use the gutenberg id to find urls, and as a unique identifier. Don't
+    # need additional restraints on duplicates, eg title/author unique.
+    book_id = models.IntegerField(primary_key=True)
+    title = models.CharField(max_length=150)
+    author_first = models.CharField(max_length=100)
+    author_last = models.CharField(max_length=100)
+    translator = models.CharField(max_length=150, blank=True, null=True)
+    language = models.CharField(max_length=50, blank=True, null=True)
+
+    @property  # Property for api compatibilty with AdelaideWork.
+    def url(self) -> str:
+        return f'http://www.gutenberg.org/ebooks/{self.id}'
+
+    def __str__(self):
+        return f"{self.title}, by {self.author_last}"
+
+
 class Isbn(models.Model):
     # A work may have multiple associated isbns, eg different editions.
     isbn = models.BigIntegerField(primary_key=True)
@@ -197,6 +215,14 @@ def populate_initial_sources():
         defaults={
             'url': 'https://www.kobo.com/',
             'purchases': True
+        }
+    )
+
+    Source.objects.update_or_create(
+        name='Project Gutenberg',
+        defaults={
+            'url': 'http://www.gutenberg.org/',
+            'free_downloads': True
         }
     )
 

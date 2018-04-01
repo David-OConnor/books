@@ -8,7 +8,8 @@ from django.db import IntegrityError
 from django.db.models import QuerySet
 
 from . import goodreads
-from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork
+from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
+    GutenbergWork
 from . import google, adelaide
 
 
@@ -23,12 +24,18 @@ def update_all() -> None:
         update_sources(work)
 
 
-def update_sources_adelaide(work: Work) -> None:
+def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
     """Update from the University of Adelaide, using their info cached in our DB."""
+    # adelaide is True if pulling from adelaide; false if from Gutenberg.
     # todo dry from search_local:
-    title_v = SearchVector('title', weight='A')
+    if adelaide_:
+        model = AdelaideWork
+        source = Source.objects.get(name='University of Adelaide')
+    else:
+        model = GutenbergWork
+        source = Source.objects.get(name='Project Gutenberg')
 
-    title_matches = AdelaideWork.objects.filter(title__search=work.title)
+    title_matches = model.objects.filter(title__search=work.title)
 
     author_last_v = SearchVector('author_last', weight='A')
     # author_first_v = SearchVector('first_name', weight='B')
@@ -45,7 +52,7 @@ def update_sources_adelaide(work: Work) -> None:
     # All books on Adelaide include in-browser reading, with links to epub and mobi.
     WorkSource.objects.update_or_create(
         work=work,
-        source=Source.objects.get(name='University of Adelaide'),
+        source=source,
         defaults={
             'epub_url': best.url,
             'kindle_url': best.url,
@@ -57,7 +64,8 @@ def update_sources(work: Work) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
 
-    update_sources_adelaide(work)
+    update_sources_adelaide_gutenberg(work, True)
+    update_sources_adelaide_gutenberg(work, False)
 
 
     # Use the work's ISBNs as unique identifiers.
@@ -91,6 +99,7 @@ def filter_chaff(title: str, author: str) -> bool:
     # Keywords in titles that indicate it's not the book you're looking for.
     TITLE_CHAFF = [
         'abridged',
+        'selected from'
         'condensed',
         'classroom',
         'related readings',
@@ -102,6 +111,7 @@ def filter_chaff(title: str, author: str) -> bool:
         'handbook',
         'collector',
         'movie',
+        'literature',
     ]
 
     AUTHOR_CHAFF = [

@@ -10,17 +10,9 @@ from main.models import AdelaideWork
 BASE_URL = 'https://ebooks.adelaide.edu.au/meta/titles/'
 
 
-# class Book(NamedTuple):
-#     title: str
-#     author_first: str
-#     author_last: str
-#     translator: Optional[str]
-#     url: str
-
-
 def crawl() -> None:
     """Pull all information from Adelaide's site, by crawling each of its 26
-    alphbetical title listings."""
+    alphbetical title listings.  Save to the database."""
     session = HTMLSession()
 
     split_title_author_re = r'(.*) / (.*?)(with an introduction.*)? \[\d{4}\]'
