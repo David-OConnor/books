@@ -118,6 +118,7 @@ class AddWorksTestCase(TestCase):
             authors=['Richard Dawkins'],
             isbn=9780192860927,
             description=description,
+            language='en',
             publication_date=saturn.date(1989, 1, 1),
             categories=['Literary Criticism'],
             book_url='http://books.google.jo/books?id=WkHO9HI7koEC&dq=intitle:%22selfish+gene%22inauthor:%22dawkins%22&hl=&as_pt=BOOKS&source=gbs_api',

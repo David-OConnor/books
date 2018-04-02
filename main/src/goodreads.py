@@ -1,44 +1,49 @@
+import xml.etree.ElementTree as ET
+from typing import Optional, Iterator
+
 import requests
-import untangle
 
 # Documentation: https://www.goodreads.com/api
-from ..models import Isbn, Source, WorkSource
+from ..models import Isbn, Source, WorkSource, Work
 from .auth import GOODREADS_KEY as KEY
+
+
+# API ref: https://www.goodreads.com/api
 
 BASE_URL = 'https://goodreads.com/'
 
-test_isbn = 9780099469506  # todo temp
-
 source, _ = Source.objects.get_or_create(
         name='GoodReads',
-        url='https://www.goodreads.com/',
-        information=True
+        defaults={
+            'url': 'https://www.goodreads.com/',
+            'information': True,
+            'free_downloads': True
+        }
 )
 
 
-def search_isbn(isbn: Isbn) -> WorkSource:
-    """Find a WorkSource for a specific ISBN."""
+def search(work: Work) -> Optional[int]:
+    """Find the unique goodreads ids associated with a work's isbns."""
+    # for isbn in Isbn.objects.filter(work=work):
+    # todo deal with different editions!
+    # todo just title search for now
     payload = {
-        'q': str(isbn),
+        # 'q': str(isbn.isbn),
+        'q': f'{work.title}',
         'key': KEY,
-        'search': 'isbn'  # title, author or all. I guess all for isbn??
+        # 'search': 'isbn'  # title, author or all. I guess all for isbn??
+        'search': 'title'  # title, author or all. I guess all for isbn??
     }
 
     r = requests.get(BASE_URL + 'search/index.xml', params=payload)
 
-    # Untangle seems much cleaner than parsing through using ET or lxml.
-    parsed_xml = untangle.parse(r.text)
-    internal_id = int(parsed_xml.GoodreadsResponse.search.results.work.id.cdata)
+    root = ET.fromstring(r.text)
+    works = root.find('search').find('results').findall('work')
+    for gr_work in works:
+        book = gr_work.find('best_book')
+        if book.find('author').find('name').text.lower() == work.author.full_name().lower():
+            return int(book.find('id').text)
 
-    # Both the work and Isbn must exist.
-    return WorkSource(
-        work=Isbn.objects.get(isbn=isbn).work,
-        source=source,
-        epub_avail=False,
-        kindle_avail=False,
-        internal_id=internal_id,
-        book_url=url_from_id(internal_id),
-    )
 
 
 def url_from_id(internal_id: int) -> str:

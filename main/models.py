@@ -172,7 +172,11 @@ class WorkSource(models.Model):
     purchase_url = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
-        unique_together = (('work', 'source'), ('source', 'internal_id'))
+        # It's probably better to tie the unique constraint only to work/source combo;
+        # we may have duplicate internal_ids for different editions/isbns of the work.
+        # todo ... actually, reattack this.
+        # unique_together = (('work', 'source'), ('source', 'internal_id'))
+        unique_together = ('work', 'source')
 
 
 class Resource(models.Model):

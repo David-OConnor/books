@@ -15,7 +15,7 @@ def update_db_from_gutenberg() -> None:
     pass
 
 
-def update_all() -> None:
+def update_all_worksources() -> None:
     for work in Work.objects.all():
         update_worksources(work)
 
@@ -65,11 +65,17 @@ def update_worksources(work: Work) -> None:
     update_sources_adelaide_gutenberg(work, True)
     update_sources_adelaide_gutenberg(work, False)
 
-
-    # Use the work's ISBNs as unique identifiers.
-    # for isbn in work.isbns:
-    #     gr_worksource = goodreads.search_isbn(isbn)
-    #     gr_worksource.save()
+    # for goodreads_id in goodreads.search(work):
+    goodreads_id = goodreads.search(work)
+    if goodreads_id:
+        WorkSource.objects.update_or_create(
+            work=work,
+            source=Source.objects.get(name='GoodReads'),
+            defaults={
+                'internal_id': goodreads_id,
+                'book_url': goodreads.url_from_id(goodreads_id)
+            }
+        )
 
 
 def search_local(title: str, author: str) -> QuerySet:

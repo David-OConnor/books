@@ -36,6 +36,13 @@
             ],
             "version": "==17.4.0"
         },
+        "backcall": {
+            "hashes": [
+                "sha256:38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4",
+                "sha256:bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2"
+            ],
+            "version": "==0.1.0"
+        },
         "beautifulsoup4": {
             "hashes": [
                 "sha256:7015e76bf32f1f574636c4288399a6de66ce08fb7b2457f628a8d70c0fbabb11",
@@ -136,10 +143,10 @@
         },
         "ipython": {
             "hashes": [
-                "sha256:fcc6d46f08c3c4de7b15ae1c426e15be1b7932bcda9d83ce1a4304e8c1129df3",
-                "sha256:51c158a6c8b899898d1c91c6b51a34110196815cc905f9be0fa5878e19355608"
+                "sha256:938da96f2f5f50d82add1947958b7432e9f330cef7703210bffd1a783d7720ab",
+                "sha256:c785ab502b1a63624baeb89fedb873a118d4da6c9a796ae06e4f4aaef74e9ea0"
             ],
-            "version": "==6.2.1"
+            "version": "==6.3.0"
         },
         "ipython-genutils": {
             "hashes": [
@@ -310,9 +317,9 @@
         },
         "pyppeteer": {
             "hashes": [
-                "sha256:caedc32a9067df9f22370deb89d6167b9d63ae97adcff0c9cdd9c4d3c2f8b09e"
+                "sha256:5366e416f2d9f557e60ee5a75bea112c5d7b75805db35d7140a2cbd2c8a6a55b"
             ],
-            "version": "==0.0.16"
+            "version": "==0.0.17"
         },
         "pyquery": {
             "hashes": [

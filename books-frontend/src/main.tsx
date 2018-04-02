@@ -44,6 +44,7 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
     }
 
     render() {
+        const dispatch = this.props.dispatch
         return (
             <Form inline={true} style={{textAlign: 'center'}}>
                 <h4>Search by title, author, or ISBN:</h4>
@@ -72,25 +73,31 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                         bsStyle="primary"
                         onClick={(e) => {
                             e.preventDefault()
-                            this.props.dispatch({
+                            dispatch({
                                 type: 'setLoading',
                                 on: true
                             })
+
+                            dispatch({
+                                type: 'replaceBooks',
+                                books: []
+                            })
+
                             axios.post(
                                 'http://localhost:8000/api/search',
                                 {title: this.state.title, author: this.state.author}
                             ).then(
                                 (resp) => {
-                                    this.props.dispatch({
-                                        type: 'setLoading',
-                                        on: false
-                                    })
-                                    this.props.dispatch({
+                                    dispatch({
                                         type: 'setDisplaying',
                                         on: true
                                     })
+                                    dispatch({
+                                        type: 'setLoading',
+                                        on: false
+                                    })
 
-                                    this.props.dispatch({
+                                    dispatch({
                                         type: 'replaceBooks',
                                         books: resp.data
                                     })}
@@ -105,7 +112,6 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
 }
 
 const Book = ({book}: {book: Work}) => {
-
     // todo add description, genre, cover etc here.
     const indent = 20
 
@@ -156,35 +162,62 @@ const Book = ({book}: {book: Work}) => {
     //     <h5>No free sources available 🙁 </h5>
 
     return (
-        <Row style={{marginTop: 40}}>
-            <h4>{book.title},
-                by: {`${book.author.first_name} ${book.author.last_name}`}</h4>
+        <div>
+            <Row style={{marginTop: 40}}>
+                <Col xs={12}>
+                    <h4>{book.title}, by: {`${book.author.first_name} ${book.author.last_name}`}</h4>
+                </Col>
+            </Row>
 
-            <Col xs={4} style={{background: '#ffefcc'}}>
-                <h4>Information</h4>
-                {infoItems}
-            </Col>
+            <Row
+                style={{
+                    display: 'flex',
+                    // flexWrap: 'wrap',
+                    borderStyle: 'solid',
+                    borderWidth: 2,
+                }}
+            >
 
-            <Col xs={4} style={{background: '#e8e7ff'}}>
-                <h4>Free downloads</h4>
-                {freeItems}
-            </Col>
+                <Col xs={4} style={{background: '#ffefcc'}}>
+                    <h4>Information</h4>
+                    {infoItems}
+                </Col>
 
-            <Col xs={4} style={{background: '#e3ffeb'}}>
-                <h4>Stores</h4>
-                {purchaseItems}
-            </Col>
+                <Col
+                    xs={4}
+                    style={{
+                        background: '#eeeeff',
+                        // display: 'flex',
+                        // flexDirection: 'column',
+                        borderLeftStyle: 'solid',
+                        borderLeftWidth: 1,
+                        borderLeftColor: '#888888',
+                        borderRightStyle: 'solid',
+                        borderRightWidth: 1,
+                        borderRightColor: '#888888'
+                    }}
+                >
 
-        </Row>
+                    <h4>Free downloads</h4>
+                    {freeItems}
+                </Col>
+
+                <Col xs={4} style={{background: '#e3ffeb'}}>
+                    <h4>Stores</h4>
+                    {purchaseItems}
+                </Col>
+
+            </Row>
+        </div>
     )
 }
 
 const HomePage = ({books, dispatch, loading, displayingResults}:
                       {books: Work[], dispatch: Function, loading: boolean, displayingResults: boolean}) => (
-    <Col sm={12} smOffset={0} style={{textAlign: 'center'}}>
+    <Col sm={12} style={{textAlign: 'center'}}>
         <h1 style={{margin: 'auto', marginBottom: 10}}>Find and download ebooks</h1>
 
-        <Row style={{textAlign: 'center'}}>
+        <Row style={{textAlign: 'center', marginBottom: 40}}>
             <Col md={8} mdOffset={2} style={{marginBottom: 30}}>
                 <SearchForm dispatch={dispatch} />
             </Col>
@@ -193,8 +226,8 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                 {loading ? <Spinner name='circle' color='blue' style={{margin: 'auto'}}/> : null}
                 {/* Can't get ringloader to center. */}
                 {/*<RingLoader*/}
-                    {/*color={'#123abc'}*/}
-                    {/*loading={true}*/}
+                {/*color={'#123abc'}*/}
+                {/*loading={true}*/}
                 {/*/>*/}
                 {!books.length && displayingResults ? <h4>No books found 🙁</h4> : null}
 
@@ -218,17 +251,16 @@ const Resource = ({resource}: {resource: Resource}) => (
 )
 
 const ResourcesPage = ({resources}: {resources: Resource[]}) => (
-    <div>
+    <Col xs={12} md={8} mdOffset={2}>
         <h3>Useful information and software</h3>
         {resources.map(r => <Resource key={r.name} resource={r} />)}
-    </div>
+    </Col>
 )
 
 // todo: Make about page text a database entry.
 const AboutPage = () => (
-    <div>
+    <Col xs={12} md={8} mdOffset={2}>
         <h2>What's the point?</h2>
-
         <p>Many older books are available free online due to their copyright
             expiring. This site makes it easy to find them in epub, Kindle, and PDF
             format.
@@ -247,7 +279,7 @@ const AboutPage = () => (
 
             -Google, for their Books search tools.
         </p>
-    </div>
+    </Col>
 )
 
 const Menu = ({dispatch}: {dispatch: Function}) => (

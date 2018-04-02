@@ -33,7 +33,7 @@ class AuthorAdmin(ModelAdmin):
 @register(Isbn)
 class IsbnAdmin(ModelAdmin):
     list_display = ('isbn', 'work', 'language', 'publication_date')
-    search_fields = ('isbn', 'work', 'publication_date')
+    search_fields = ('isbn', 'work__title', 'publication_date')
 
 
 @register(Resource)
