@@ -49,3 +49,4 @@ class SourceAdmin(ModelAdmin):
 @register(WorkSource)
 class WorkSourceAdmin(ModelAdmin):
     list_display = ('work', 'source', 'price')
+    search_fields = ('work__title', 'work__author__last_name', 'source__name')

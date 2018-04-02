@@ -47,4 +47,6 @@ export interface MainState {
     page: string
     books: Work[]
     resources: Resource[]
+    loading: boolean
+    displayingResults: boolean
 }

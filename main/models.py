@@ -165,11 +165,11 @@ class WorkSource(models.Model):
 
     price = models.FloatField(blank=True, null=True)
 
-    book_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
-    epub_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
-    kindle_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
-    pdf_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
-    purchase_url = models.CharField(max_length=200, blank=True, null=True, unique=True)
+    book_url = models.CharField(max_length=200, blank=True, null=True)
+    epub_url = models.CharField(max_length=200, blank=True, null=True)
+    kindle_url = models.CharField(max_length=200, blank=True, null=True)
+    pdf_url = models.CharField(max_length=200, blank=True, null=True)
+    purchase_url = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         unique_together = (('work', 'source'), ('source', 'internal_id'))

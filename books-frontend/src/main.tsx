@@ -8,6 +8,9 @@ import * as _ from 'lodash'
 import {Work, MainState, Resource, WorkSource} from "./interfaces"
 import axios from "axios"
 
+import * as Spinner from "react-spinkit"
+import { RingLoader } from 'react-spinners';
+
 interface SearchProps {
     dispatch: Function
 }
@@ -19,7 +22,6 @@ interface SearchState {
 }
 
 class SearchForm extends React.Component<SearchProps, SearchState> {
-
     // todo make this one search field instead of separate title and author.
     constructor(props: SearchProps) {
         super(props);
@@ -70,12 +72,24 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                         bsStyle="primary"
                         onClick={(e) => {
                             e.preventDefault()
-
+                            this.props.dispatch({
+                                type: 'setLoading',
+                                on: true
+                            })
                             axios.post(
                                 'http://localhost:8000/api/search',
                                 {title: this.state.title, author: this.state.author}
                             ).then(
                                 (resp) => {
+                                    this.props.dispatch({
+                                        type: 'setLoading',
+                                        on: false
+                                    })
+                                    this.props.dispatch({
+                                        type: 'setDisplaying',
+                                        on: true
+                                    })
+
                                     this.props.dispatch({
                                         type: 'replaceBooks',
                                         books: resp.data
@@ -165,16 +179,25 @@ const Book = ({book}: {book: Work}) => {
     )
 }
 
-const HomePage = ({books, dispatch}: {books: Work[], dispatch: Function}) => (
+const HomePage = ({books, dispatch, loading, displayingResults}:
+                      {books: Work[], dispatch: Function, loading: boolean, displayingResults: boolean}) => (
     <Col sm={12} smOffset={0} style={{textAlign: 'center'}}>
-        <h1 style={{margin: 'auto'}}>Find and download ebooks</h1>
+        <h1 style={{margin: 'auto', marginBottom: 10}}>Find and download ebooks</h1>
 
         <Row style={{textAlign: 'center'}}>
-            <Col md={8} mdOffset={2}>
+            <Col md={8} mdOffset={2} style={{marginBottom: 30}}>
                 <SearchForm dispatch={dispatch} />
             </Col>
 
             <Col xs={12} md={8} mdOffset={2}>
+                {loading ? <Spinner name='circle' color='blue' style={{margin: 'auto'}}/> : null}
+                {/* Can't get ringloader to center. */}
+                {/*<RingLoader*/}
+                    {/*color={'#123abc'}*/}
+                    {/*loading={true}*/}
+                {/*/>*/}
+                {!books.length && displayingResults ? <h4>No books found 🙁</h4> : null}
+
                 {books.map(b => <Book key={b.id} book={b}/>)}
             </Col>
         </Row>
@@ -228,7 +251,7 @@ const AboutPage = () => (
 )
 
 const Menu = ({dispatch}: {dispatch: Function}) => (
-    <Col xs={8} xsOffset={2} style={{textAlign: 'center'}}>
+    <Col xs={8} xsOffset={2} style={{textAlign: 'center', marginBottom: 30}}>
         <ButtonGroup>
             <Button
                 onClick={() => dispatch({type: 'changePage', page: 'home'})}
@@ -242,16 +265,25 @@ const Menu = ({dispatch}: {dispatch: Function}) => (
 )
 
 export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) => {
+    const home = (
+        <HomePage
+            books={state.books}
+            dispatch={dispatch}
+            loading={state.loading}
+            displayingResults={state.displayingResults}
+        />
+    )
+
     const findPage = (page) => {
         switch(page) {
             case 'home':
-                return <HomePage books={state.books} dispatch={dispatch} />
+                return home
             case 'resources':
                 return <ResourcesPage resources={state.resources} />
             case 'about':
                 return <AboutPage />
             default:
-                return <HomePage books={state.books} dispatch={dispatch}/>
+                return home
         }
     }
     const activePage = findPage(state.page)

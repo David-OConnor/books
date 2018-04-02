@@ -18,6 +18,8 @@ const initialState: MainState = {
     page: 'home',
     books: [],
     resources: [],
+    loading: false,
+    displayingResults: false,
 }
 
 const mainReducer = (state: MainState=initialState, action: any) => {
@@ -35,6 +37,12 @@ const mainReducer = (state: MainState=initialState, action: any) => {
 
         case 'replaceResources':
             return {...state, resources: action.resources}
+
+        case 'setLoading':
+            return {...state, loading: action.on}
+
+        case 'setDisplaying':
+            return {...state, displayingResults: action.on}
 
         default:
             return state

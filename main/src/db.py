@@ -53,6 +53,7 @@ def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
         defaults={
             'epub_url': best.url,
             'kindle_url': best.url,
+            'internal_id': best.book_id if not adelaide else None
         }
     )
 
