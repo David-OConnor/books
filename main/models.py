@@ -53,8 +53,8 @@ class Work(models.Model):
     title = models.CharField(max_length=100)
 
     # todo make authors a manytomany.
-    # author = models.ManyToManyField(Author, related_name='works')
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='works')
+    author = models.ForeignKey(Author, related_name='works', on_delete=models.CASCADE)
+    additional_authors = models.ManyToManyField(Author, related_name='works_as_additional')
 
     translator = models.ForeignKey(Author, blank=True, null=True, on_delete=models.CASCADE,
                                    related_name='translations')
@@ -70,34 +70,21 @@ class Work(models.Model):
     # todo currently duplicated pub date between here and ISBN.
     # publication_date = models.DateField(null=True, blank=True)
 
-    def us_copyright_exp(self) -> bool:
-        """Calculate if a book's copyright is expired in the US. From rules listed
-            here: https://fairuse.stanford.edu/overview/faqs/copyright-basics/ """
-        if not self.publication_date:
-            return False
-        if self.publication_date < saturn.date(1923, 1, 1):
-            return True
-        if saturn.date(1922, 12, 31) < self.publication_date < saturn.date(1978, 1, 1):
-            return self.publication_date + saturn.timedelta(days=365) < saturn.today()
-
-        # "If the work was created, but not published, before 1978, the copyright
-        # lasts for the life of the author plus 70 years."
-        return False
-
     def __str__(self):
         return f"{self.title}, by {self.author}"
 
     class Meta:
-        ordering = ('author', 'title')
-        unique_together = ('author', 'title')
+        ordering = ('title', 'author')
+        unique_together = ('title', 'author')
 
 
 class AdelaideWork(models.Model):
     title = models.CharField(max_length=150)
-    author_first = models.CharField(max_length=100)
+    author_first = models.CharField(max_length=100, blank=True, null=True)
     author_last = models.CharField(max_length=100)
+    publication_year = models.IntegerField(blank=True, null=True)
     translator = models.CharField(max_length=150, blank=True, null=True)
-    url = models.CharField(max_length=150, blank=True, null=True)
+    url = models.CharField(max_length=150)
 
     def __str__(self):
         return f"{self.title}, by {self.author_last}"
@@ -137,8 +124,24 @@ class Isbn(models.Model):
     # todo add more detailed validators, either during the constructor new() method,
     # todo or as an additional method.
 
+    def us_copyright_exp(self) -> bool:
+        """Calculate if a book's copyright is expired in the US. From rules listed
+            here: https://fairuse.stanford.edu/overview/faqs/copyright-basics/ """
+        if not self.publication_date:
+            return False
+        if self.publication_date < saturn.date(1923, 1, 1):
+            return True
+        if saturn.date(1922, 12, 31) < self.publication_date < saturn.date(
+                1978, 1, 1):
+            return self.publication_date + saturn.timedelta(
+                days=365) < saturn.today()
+
+        # "If the work was created, but not published, before 1978, the copyright
+        # lasts for the life of the author plus 70 years."
+        return False
+
     @classmethod  # It may be better to do this with Djangon signals like pre_init?
-    def new(cls, isbn: int, work: Work, publication_date: dt.date=None):
+    def new(cls, isbn: int, work: Work, publication_date: dt.date=None, language: str=None):
         """Use this method to create the model; validates the ISBN, and converts
         10-digit format to 13."""
         isbn_len = len(str(isbn))
@@ -149,7 +152,12 @@ class Isbn(models.Model):
         else:
             raise AttributeError("ISBN must be a 10 or 13-digit number")
 
-        return cls(isbn=validated_isbn, work=work, publication_date=publication_date)
+        return cls(
+            isbn=validated_isbn,
+            work=work,
+            publication_date=publication_date,
+            language=language
+        )
 
     def __str__(self):
         return f"isbn 13: {self.isbn}"
@@ -235,9 +243,18 @@ def populate_initial_sources():
     )
 
     Source.objects.update_or_create(
-        name='University of Adelaide Library',
+        name='University of Adelaide',
         defaults={
             'url': 'https://ebooks.adelaide.edu.au/',
+            'free_downloads': True
+        }
+    )
+
+    Source.objects.update_or_create(
+        name='GoodReads',
+        defaults={
+            'url': 'https://www.goodreads.com/',
+            'information': True,
             'free_downloads': True
         }
     )

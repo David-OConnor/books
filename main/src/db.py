@@ -9,6 +9,9 @@ from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
 from . import google, adelaide
 
 
+# Try to keep database modifications from APIs in this file.
+
+
 def update_db_from_gutenberg() -> None:
     """Add and edit books and authors in the database using Gutenberg's catalog,
     stored locally."""
@@ -116,12 +119,16 @@ def filter_chaff(title: str, author: str) -> bool:
         'collector',
         'movie',
         'literature',
-        'selected from'
+        'selected from',
+        'close reading',
     ]
 
     AUTHOR_CHAFF = [
         'press',
         'limited',
+        'staff',
+        'inc',
+        'scholastic',
     ]
 
     # Test if it's a weird, non-original version.
@@ -135,6 +142,8 @@ def filter_chaff(title: str, author: str) -> bool:
 
 
 def search_or_update(title: str, author: str) -> List[Work]:
+    """Try to find the work locally; if unable, Add the work to the database
+       based on searching with the Google Api."""
     results = list(search_local(title, author))
 
     # If we found a local result, return it. If not, query the API.
@@ -144,8 +153,6 @@ def search_or_update(title: str, author: str) -> List[Work]:
     internet_results = google.search_title_author(title, author)
     if not internet_results:
         return []
-
-    source = Source.objects.get(name='Google')
 
     new_results = []
     for book in internet_results:
@@ -171,19 +178,20 @@ def search_or_update(title: str, author: str) -> List[Work]:
             }
         )
 
-        # Add the new ISBN to the database.
-        Isbn.objects.update_or_create(
-            isbn=book.isbn,
-            defaults={
-                'work': new_work,
-                'publication_date': book.publication_date,
-                'language': book.language
-            }
-        )
+        for isbn in book.isbns:
+            # Add the new ISBN to the database.
+            Isbn.objects.update_or_create(
+                isbn=isbn,
+                defaults={
+                    'work': new_work,
+                    'publication_date': book.publication_date,
+                    'language': book.language
+                }
+            )
 
         # Update the Google work source here, since we already queried them.
         WorkSource.objects.update_or_create(
-            source=source,
+            source=Source.objects.get(name='Google'),
             work=new_work,
             defaults={
                 'book_url': book.book_url,

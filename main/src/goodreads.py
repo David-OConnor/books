@@ -1,9 +1,12 @@
 import xml.etree.ElementTree as ET
-from typing import Optional, Iterator
+import datetime as dt
+from typing import Optional, Iterator, NamedTuple, List
 
 import requests
 
 # Documentation: https://www.goodreads.com/api
+import saturn
+
 from ..models import Isbn, Source, WorkSource, Work
 from .auth import GOODREADS_KEY as KEY
 
@@ -12,15 +15,27 @@ from .auth import GOODREADS_KEY as KEY
 
 BASE_URL = 'https://goodreads.com/'
 
-source, _ = Source.objects.get_or_create(
-        name='GoodReads',
-        defaults={
-            'url': 'https://www.goodreads.com/',
-            'information': True,
-            'free_downloads': True
-        }
-)
 
+class GrBook(NamedTuple):
+    title: str
+    authors: List[str]
+    isbn: int
+
+    language: Optional[str]
+    description: Optional[str]
+    publication_date: Optional[dt.date]
+    categories: List[str]
+
+    book_url: Optional[str]
+    epub_url: Optional[str]
+    pdf_url: Optional[str]
+    purchase_url: Optional[str]
+
+    price: Optional[float]
+
+
+
+# todo make goodreads your main populator, instead of google!
 
 def search(work: Work) -> Optional[int]:
     """Find the unique goodreads ids associated with a work's isbns."""
@@ -39,66 +54,43 @@ def search(work: Work) -> Optional[int]:
 
     root = ET.fromstring(r.text)
     works = root.find('search').find('results').findall('work')
+
     for gr_work in works:
         book = gr_work.find('best_book')
         if book.find('author').find('name').text.lower() == work.author.full_name().lower():
             return int(book.find('id').text)
 
 
+def search_title_author(title: str, author: str) -> Iterator[GrBook]:
+    """Find the unique goodreads ids associated with a work's isbns."""
+    # for isbn in Isbn.objects.filter(work=work):
+    # todo deal with different editions!
+    # todo just title search for now
+    payload = {
+        # 'q': str(isbn.isbn),
+        'q': f'{title} {author}]',
+        'key': KEY,
+        # 'search': 'isbn'  # title, author or all. I guess all for isbn??
+        'search': 'all'  # title, author or all. I guess all for isbn??
+    }
+
+    r = requests.get(BASE_URL + 'search/index.xml', params=payload)
+
+    root = ET.fromstring(r.text)
+    works = root.find('search').find('results').findall('work')
+
+    for gr_work in works:
+        book = gr_work.find('best_book')
+        if book.find('author').find('name').text.lower() == 0:
+
+            gr_id = int(book.find('id').text)
+
+            publ_year = gr_work.find('original_publication_year').text
+            publ_month = gr_work.find('original_publication_month').text
+            publ_day = gr_work.find('original_publication_day').text
+            publication_date = saturn.from_str(f'{publ_year}-{publ_month}-{publ_day}', 'YYYY-MM-DD')
+
 
 def url_from_id(internal_id: int) -> str:
     """Find the goodreads URL associated with a book from its id."""
     return f"https://www.goodreads.com/book/show/{internal_id}"
-
-
-def search_title(title: str) -> WorkSource:
-    # todo you could merge this with search_isbn, since they both
-    # todo use the same API endpoint.
-    pass
-
-
-#Example query result from searching by isbn:
-"""
-<?xml version="1.0" encoding="UTF-8"?>
-<GoodreadsResponse>
-  <Request>
-    <authentication>true</authentication>
-      <key><![CDATA[uexbJbIA196PF5j5S7ZprQ]]></key>
-    <method><![CDATA[search_index]]></method>
-  </Request>
-  
-  <search>
-    <query><![CDATA[9780099469506]]></query>
-    <results-start>1</results-start>
-    <results-end>1</results-end>
-    <total-results>1</total-results>
-    <source>Goodreads</source>
-    <query-time-seconds>0.01</query-time-seconds>
-    
-    <results>
-        <work>
-          <id type="integer">2416056</id>
-          <books_count type="integer">92</books_count>
-          <ratings_count type="integer">101528</ratings_count>
-          <text_reviews_count type="integer">2311</text_reviews_count>
-          <original_publication_year type="integer">1985</original_publication_year>
-          <original_publication_month type="integer">9</original_publication_month>
-          <original_publication_day type="integer" nil="true"/>
-          <average_rating>4.12</average_rating>
-          <best_book type="Book">
-            <id type="integer">611439</id>
-            <title>Contact</title>
-            <author>
-              <id type="integer">10538</id>
-              <name>Carl Sagan</name>
-            </author>
-            <image_url>https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png</image_url>
-            <small_image_url>https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png</small_image_url>
-          </best_book>
-        </work>
-
-    </results>
-  </search>
-
-</GoodreadsResponse>
-"""

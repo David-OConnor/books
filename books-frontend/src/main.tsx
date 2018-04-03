@@ -74,6 +74,10 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                         onClick={(e) => {
                             e.preventDefault()
                             dispatch({
+                                type: 'setDisplaying',
+                                on: false
+                            })
+                            dispatch({
                                 type: 'setLoading',
                                 on: true
                             })
@@ -119,10 +123,10 @@ const Book = ({book}: {book: Work}) => {
     const infoItems = infoSources.map(ws =>
         (
             <div key={ws.id}>
-                <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
-                <p style={{textIndent: indent}}>
-                    {ws.book_url ? <a href={ws.book_url}>Info</a> : null}
-                </p>
+                <h4><a href={ws.book_url}>{ws.source.name}</a></h4>
+                {/*<p style={{textIndent: indent}}>*/}
+                    {/*{ws.book_url ? <a href={ws.book_url}>Info</a> : null}*/}
+                {/*</p>*/}
             </div>
         )
     )

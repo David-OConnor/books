@@ -6,9 +6,6 @@ import requests
 import saturn
 from saturn.from_arrow import ParserError
 
-from main.models import Source
-from .auth import GOOG_KEY as KEY
-
 
 # Overall notes: Robust API, but some parts are no longer being maintained.
 # Prime candidate to populate new entries in our DB>
@@ -19,10 +16,13 @@ from .auth import GOOG_KEY as KEY
 class GBook(NamedTuple):
     title: str
     authors: List[str]
-    isbn: int
+    isbns: List[int]
+
+    internal_id: str
 
     language: Optional[str]
     description: Optional[str]
+    publisher: Optional[str]
     publication_date: Optional[dt.date]
     categories: List[str]
 
@@ -56,7 +56,7 @@ def search_isbn(isbn: str='0671004107'):
     return result
 
 
-def search_title_author(title: str, author: str) -> Optional[Iterator[GBook]]:
+def search_title_author(title: str, author: str) -> Iterator[GBook]:
     # todo search by ISBN on Google is currently broken.
     url = base_url + 'volumes'
     payload = {
@@ -70,30 +70,31 @@ def search_title_author(title: str, author: str) -> Optional[Iterator[GBook]]:
     result = requests.get(url, params=payload).json()
     items = result.get('items')
     if not items:
-        return
+        return iter(())
 
-    return _trim_results(items)
+    return _process_results(items)
 
 
-def _trim_results(items: List[dict]) -> Iterator[GBook]:
+def _process_results(items: List[dict]) -> Iterator[GBook]:
     """Reformat raw Google Books api data into a format with only information
     we care about."""
+    # todo write a test for this func
     for book in items:
-
         volume = book['volumeInfo']
 
         authors = volume.get('authors')
         if not authors:  # If authors is blank, just move on.
             continue
 
-        idents = volume.get('industryIdentifiers')
-        if not idents:
-            continue
+        isbns = []
+        for ident in volume.get('industryIdentifiers', []):
+            if ident['type'] == 'ISBN_10':
+                isbns.append(int('978' + ident['identifier']))
+            elif ident['type'] == 'ISBN_13':
+                isbns.append(int(ident['identifier']))
 
-        isbn = [ident for ident in idents if ident['type'] == 'ISBN_13']
-        if not isbn:
+        if not isbns:
             continue
-        isbn = int(isbn[0]['identifier'])
 
         price = book['saleInfo'].get('retailPrice')
         if price:
@@ -109,10 +110,14 @@ def _trim_results(items: List[dict]) -> Iterator[GBook]:
         yield GBook(
             title=volume['title'],
             authors=authors,
-            isbn=isbn,
+            isbns=isbns,
+
+            internal_id=book['id'],
+
             language=volume.get('language'),
             description=volume.get('description'),
             publication_date=pub_date,
+            publisher=volume.get('publisher'),
             categories=volume.get('categories', []),
 
             book_url=volume.get('infoLink'),

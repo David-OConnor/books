@@ -1,5 +1,6 @@
 from string import ascii_uppercase
 import re
+from typing import Optional, NamedTuple
 
 from requests_html import HTMLSession
 
@@ -8,52 +9,103 @@ from main.models import AdelaideWork
 BASE_URL = 'https://ebooks.adelaide.edu.au/meta/titles/'
 
 
+class ABook(NamedTuple):
+    # Information stored in an Abook (And for similar tuples in API files) encloses
+    # The information the source contains; we may not use all of it in the db, or may
+    # wish for more.
+    title: str
+    author_first: Optional[str]
+    author_last: str
+    publication_year: Optional[int]
+    translator: Optional[str]
+    url: str
+
+    def __repr__(self):
+        return f"title: {self.title} author: {self.author_first} {self.author_last}\n" \
+               f"publication: {self.publication_year}, url: {self.url}"
+
+
+def parse_link(text: str, href: str) -> Optional[ABook]:
+    # Initially split into three easy-to-parse chunks.
+    split_title_misc_pub = r'(.*?) / (.*?)(?: \[(\d{4})\])?$'
+    match = re.match(split_title_misc_pub, text)
+
+    if not match:
+        return
+
+    title, misc, publication_year = match.groups()
+
+    # Now parse misc: This will be the author's first and last name, and filler
+    # such as translator, illustrator etc.
+
+    misc = misc.replace(' []', '')
+
+    # (with an?.* ? by)?
+    # Adelaide uses a semicolon after the author for fille.
+    split_misc = r'(.*?)(\s?;.*)?$'
+
+    misc_match = re.match(split_misc, misc)
+    if not misc_match:
+        return
+
+    # todo parse extras like translator; for now we discard.
+    author, extras = misc_match.groups()
+
+    # translator = None
+    # if translator_match:
+    #     author, translator = translator_match.groups()
+
+    # Divide author into first and last names.
+    # Note: This is imperfect.
+    author = author.split(' ')
+    if len(author) == 1:
+        author_first, author_last = None, author[0]
+    else:
+        # If len is more than 2, it may be initials or a middle name; group these
+        # into the first name.
+        *author_first, author_last = author
+        author_first = ' '.join(author_first)
+
+    # todo: You should be able to modify or remove this sanity check once you
+    # todo clean up your algorithm.
+    if len(title) > 150 or len(author_last) > 100:
+        return
+    if author_first and len(author_first) > 100:
+        return
+
+    return ABook(
+        title=title,
+        author_first=author_first,
+        author_last=author_last,
+        publication_year=int(publication_year) if publication_year else None,
+        translator=None,
+        url=f"https://ebooks.adelaide.edu.au/{href}"
+    )
+
+
 def crawl() -> None:
     """Pull all information from Adelaide's site, by crawling each of its 26
     alphbetical title listings.  Save to the database."""
     session = HTMLSession()
 
-    split_title_author_re = r'(.*) / (.*?)(with an introduction.*)? \[\d{4}\]'
-    split_translator_re = r'(.*); translated (.*)'
-
     for letter in ascii_uppercase:
         r = session.get(BASE_URL + letter)
         work_div = r.html.find('.works', first=True)
 
-        works = work_div.find('a')
-
-        for work in works:
+        for work in work_div.find('a'):
             # Pull title from link text
-            match = re.match(split_title_author_re, work.text)
-            if not match:
-                continue
-            title, author, _ = match.groups()
-
-            translator = None
-            translator_match = re.match(split_translator_re, author)
-            if translator_match:
-                author, translator = translator_match.groups()
-
-            # Divide author into first and last names.
-            # Note: This is imperfect.
-            author = author.split(' ')
-            if len(author) == 1:
-                author_first, author_last = '', author[0]
-            else:
-                *author_first, author_last = author
-                author_first = ' '.join(author_first)
-
-            if len(title) > 150 or len(author_first) > 100 or len(author_last) > 100:
+            book = parse_link(work.text, work.attrs['href'])
+            if not book:
                 continue
 
             AdelaideWork.objects.update_or_create(
-                title=title,
-                author_last=author_last,
+                title=book.title,
+                author_last=book.author_last,
 
                 defaults={
-                    'author_first': author_first,
-                    'translator': translator,
-                    'url': f"https://ebooks.adelaide.edu.au{work.attrs['href']}"
-
+                    'author_first': book.author_first,
+                    'publication_year': book.publication_year,
+                    'translator': book.translator,
+                    'url': book.url
                 }
             )
