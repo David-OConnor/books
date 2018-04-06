@@ -121,6 +121,8 @@ def filter_chaff(title: str, author: str) -> bool:
         'literature',
         'selected from',
         'close reading',
+        'with audio',
+        'library',
     ]
 
     AUTHOR_CHAFF = [
@@ -166,6 +168,9 @@ def search_or_update(title: str, author: str) -> List[Work]:
             author_last, author_first = book.authors[0], ''
 
         author, _ = Author.objects.get_or_create(first_name=author_first, last_name=author_last)
+
+        if len(title) > 100:
+            continue
 
         # Add the new work to the database.
         new_work, _ = Work.objects.get_or_create(

@@ -1,7 +1,8 @@
-import pytest
+import unittest
 from django.test import TestCase
 import saturn
 
+from main.src.gutenberg import GbBook
 from .models import Work, Author, Isbn, GutenbergWork, Source, WorkSource
 from .src import db, google, gutenberg, goodreads, adelaide
 
@@ -243,7 +244,8 @@ class CachedAPIsTestCase(TestCase):
         self.assertIn(boy, query)
 
 
-class ParsersTestCase(TestCase):
+class ParsersTestCase(unittest.TestCase):
+    # No need to involve Django's test case, setting up a db.
     def test_adelaide_link_parser_basic(self):
         abbot_link = ('The Abbot / Walter Scott [1820]', 's/scott/walter/abbot/')
         abbot_expected = adelaide.ABook(
@@ -307,11 +309,100 @@ class ParsersTestCase(TestCase):
             url='https://ebooks.adelaide.edu.au/a/aristophanes/peace/'
         )
 
-        actual = adelaide.parse_link(*verner_link)
-
         self.assertEqual(adelaide.parse_link(*poems_link), poems_expected)
         self.assertEqual(adelaide.parse_link(*verner_link), verner_expected)
         self.assertEqual(adelaide.parse_link(*peace_link), peace_expected)
 
+    def test_gutenberg_index_parser_basic(self):
+        victories_text = '''Victories of Wellington and the British Armies,                          56689
+ by William Hamilton Maxwell'''
+        victories_expected = GbBook(
+            internal_id=56689,
+            title="Victories of Wellington and the British Armies",
+            author_first="William Hamilton",
+            author_last="Maxwell",
+            language=None,
+            illustrator=None,
+            subtitle=None,
+            editor=None
+        )
+
+        turngenev_text = '''Turgenev, by Edward Garnett                                              56809
+ [Subtitle: A Study]'''
+        turngenev_expected = GbBook(
+            internal_id=56809,
+            title="Turgenev",
+            author_first="Edward",
+            author_last="Garnett",
+            language=None,
+            illustrator=None,
+            subtitle="A Study",
+            editor=None
+        )
+
+        rim_text = '''Within the Rim and Other Essays, by Henry James                          37425'''
+        rim_expected = GbBook(
+            internal_id=37425,
+            title="Within the Rim and Other Essays",
+            author_first="Henry",
+            author_last="James",
+            language=None,
+            illustrator=None,
+            subtitle=None,
+            editor=None
+        )
+
+        self.assertEqual(gutenberg.parse_entry(victories_text), victories_expected)
+        self.assertEqual(gutenberg.parse_entry(turngenev_text), turngenev_expected)
+        self.assertEqual(gutenberg.parse_entry(rim_text), rim_expected)
+
+    def test_gutenberg_index_parser_advanced(self):
+        hol_text = '''In het Hol van den Leeuw, door J. Fabius                                 56561
+ [Subtitle: Reisschetsen uit Sovjet-Rusland]
+ [Illustrator: Piet C. Wagner]
+ [Language: Dutch]'''
+        hol_expected = GbBook(
+            internal_id=56561,
+            title="In het Hol van den Leeuw",
+            author_first="J.",
+            author_last="Fabius",
+            language="Dutch",
+            illustrator="Piet C. Wagner",
+            subtitle="Reisschetsen uit Sovjet-Rusland",
+            editor=None
+        )
+
+        rising_text = '''The Rising Tide of Color Against White World-Supremacy,                  37408
+ by Theodore Lothrop Stoddard'''
+        rising_expected = GbBook(
+            internal_id=37408,
+            title="The Rising Tide of Color Against White World-Supremacy",
+            author_first="Theodore Lothrop",
+            author_last="Stoddard",
+            language=None,
+            illustrator=None,
+            subtitle=None,
+            editor=None
+        )
+
+        turandot_text = '''Turandot, Prinzessin von China,                                           6505
+ by Johann Christoph Friedrich von Schiller 
+ [Author a.k.a. Friedrich Schiller]
+ [Subtitle: Ein tragikomisches Maerchen nach Gozzi]
+ [Language: German]'''
+        turandot_expected = GbBook(
+            internal_id=6505,
+            title="Turandot, Prinzessin von China",
+            author_first="Johann Christoph Friedrich",
+            author_last="Schiller",
+            language="German",
+            illustrator=None,
+            subtitle="Ein tragikomisches Maerchen nach Gozzi",
+            editor=None
+        )
+
+        # self.assertEqual(gutenberg.parse_entry(hol_text), hol_expected)
+        self.assertEqual(gutenberg.parse_entry(rising_text), rising_expected)
+        self.assertEqual(gutenberg.parse_entry(turandot_text), turandot_expected)
 
 

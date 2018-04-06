@@ -100,8 +100,10 @@ class GutenbergWork(models.Model):
     title = models.CharField(max_length=150)
     author_first = models.CharField(max_length=100)
     author_last = models.CharField(max_length=100)
-    translator = models.CharField(max_length=150, blank=True, null=True)
     language = models.CharField(max_length=50, blank=True, null=True)
+    illustrator = models.CharField(max_length=100, blank=True, null=True)
+    subtitle = models.CharField(max_length=200, blank=True, null=True)
+    editor = models.CharField(max_length=200, blank=True, null=True)
 
     @property  # Property for api compatibilty with AdelaideWork.
     def url(self) -> str:
