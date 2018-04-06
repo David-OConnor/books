@@ -12,7 +12,7 @@ python_version = "3.6"
 
 [packages]
 
-Django = "*"
+django = "*"
 djangorestframework = "*"
 dj-database-url = "*"
 "psycopg2" = "*"
@@ -21,11 +21,12 @@ django-cors-headers = "*"
 pytest = "*"
 django-webpack-loader = "*"
 requests = "*"
-Saturn = "*"
+saturn = "*"
 rdflib = "*"
 untangle = "*"
 requests-html = "*"
 pymarc = "*"
+dj-static = "*"
 
 
 [dev-packages]

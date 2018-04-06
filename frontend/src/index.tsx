@@ -2,8 +2,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'
 import registerServiceWorker from './registerServiceWorker'
 
-import { createStore, Store, combineReducers } from 'redux'
-import { Provider, connect } from 'react-redux'
+import {createStore, Store} from 'redux'
+import {Provider, connect} from 'react-redux'
 
 import axios from "axios"
 
@@ -12,7 +12,6 @@ import Main from './main'
 import {MainState} from "./interfaces";
 
 // This module contains state and initialization code.
-
 
 const initialState: MainState = {
     page: 'home',
@@ -48,7 +47,6 @@ const mainReducer = (state: MainState=initialState, action: any) => {
             return state
     }
 }
-
 
 let store: Store<any> = createStore(mainReducer)
 

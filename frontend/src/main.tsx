@@ -1,15 +1,14 @@
 import * as React from 'react'
 
-import {Button, Grid, Row, Col, Clearfix,
-    Form, FormGroup, FormControl, ControlLabel, ButtonGroup,
-    DropdownButton, MenuItem} from 'react-bootstrap'
+import {Button, Grid, Row, Col,
+    Form, FormGroup, FormControl,ButtonGroup} from 'react-bootstrap'
 
-import * as _ from 'lodash'
-import {Work, MainState, Resource, WorkSource} from "./interfaces"
+// import * as _ from 'lodash'
+import {Work, MainState, Resource} from "./interfaces"
 import axios from "axios"
 
 import * as Spinner from "react-spinkit"
-import { RingLoader } from 'react-spinners';
+// import { RingLoader } from 'react-spinners';
 
 interface SearchProps {
     dispatch: Function

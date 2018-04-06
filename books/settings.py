@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',  # Required for Postgres search.
     'rest_framework',
     'corsheaders',
-    'webpack_loader',
+    # 'webpack_loader',
 
     'main',
 
@@ -132,21 +132,27 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+# https://github.com/kennethreitz/dj-static
+STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
-
-WEBPACK_LOADER = {
-    'DEFAULT': {
-            'BUNDLE_DIR_NAME': 'bundles/',
-            'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.dev.json'),
-        }
-}
-
-
-# From django-webpack-loader docs
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),
+    os.path.join(BASE_DIR, 'static'),
 )
+
+
+# WEBPACK_LOADER = {
+#     'DEFAULT': {
+#             'BUNDLE_DIR_NAME': 'bundles/',
+#             'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.dev.json'),
+#         }
+# }
+
+
+# # From django-webpack-loader docs
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'assets'),
+# )
 
 # todo look up what this is for
 REST_FRAMEWORK = {
