@@ -30,9 +30,13 @@ def scrape(work: Work) -> Optional[Tuple[str, str]]:
 
     r_page = session.get(url)
     price_div = r_page.html.find('.active-price', first=True)
-    price = price_div.find('.price', first=True).text
+    if not price_div:
+        price = None
+    else:
+        price = price_div.find('.price', first=True).text
 
     return url, price
+
 
 def search(work: Work) -> Optional[int]:
     url = 'https://app.rakuten.co.jp/services/api/Kobo/EbookSearch/20140811'

@@ -76,6 +76,14 @@ class Work(models.Model):
     # todo currently duplicated pub date between here and ISBN.
     # publication_date = models.DateField(null=True, blank=True)
 
+    def has_free_sources(self) -> bool:
+        if not self.work_sources:
+            return False
+        for worksource in self.work_sources.all():
+            if worksource.has_free():
+                return True
+        return False
+
     def __str__(self):
         return f"{self.title}, by {self.author}"
 
@@ -182,11 +190,16 @@ class WorkSource(models.Model):
     # Pair with a currency field.
     price = models.FloatField(blank=True, null=True)
 
-    book_url = models.CharField(max_length=200, blank=True, null=True)
-    epub_url = models.CharField(max_length=200, blank=True, null=True)
-    kindle_url = models.CharField(max_length=200, blank=True, null=True)
-    pdf_url = models.CharField(max_length=200, blank=True, null=True)
-    purchase_url = models.CharField(max_length=200, blank=True, null=True)
+    book_url = models.CharField(max_length=300, blank=True, null=True)
+    epub_url = models.CharField(max_length=300, blank=True, null=True)
+    kindle_url = models.CharField(max_length=300, blank=True, null=True)
+    pdf_url = models.CharField(max_length=300, blank=True, null=True)
+    purchase_url = models.CharField(max_length=300, blank=True, null=True)
+
+    def has_free(self) -> bool:
+        if any([self.epub_url, self.kindle_url, self.pdf_url]):
+            return True
+        return False
 
     class Meta:
         # It's probably better to tie the unique constraint only to work/source combo;

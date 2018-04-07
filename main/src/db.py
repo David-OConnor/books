@@ -84,7 +84,7 @@ def update_worksources(work: Work) -> None:
     kobo_data = kobo.scrape(work)
     if kobo_data:
         kobo_url, kobo_price = kobo_data
-        kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
+        kobo_price = float(kobo_price[1:]) if kobo_price else None  # todo removes dollar sign. Janky/inflexible
         WorkSource.objects.update_or_create(
             work=work,
             source=Source.objects.get(name='Kobo'),
@@ -95,7 +95,7 @@ def update_worksources(work: Work) -> None:
         )
 
 
-def search_local(title: str, author: str) -> QuerySet:
+def search_local(title: str, author: str) -> List[Work]:
     """Use Postgres's search feature to query the databse based on title and author."""
     # Prioritize author last name over first.
     author_last_v = SearchVector('last_name', weight='A')
@@ -112,7 +112,17 @@ def search_local(title: str, author: str) -> QuerySet:
     works = Work.objects.annotate(search=title_v).filter(search=title)
 
     # If no author provided, don't filter by author results.
-    return works.filter(author__in=authors) if author else works
+    works = works.filter(author__in=authors) if author else works
+
+    # Bump results that have free downloads to the top.
+    has_free = []
+    no_free = []
+    for work in works:
+        if work.has_free_sources():
+            has_free.append(work)
+        else:
+            no_free.append(work)
+    return has_free + no_free
 
 
 def filter_chaff(title: str, author: str) -> bool:
@@ -137,6 +147,7 @@ def filter_chaff(title: str, author: str) -> bool:
         'close reading',
         'with audio',
         'library',
+        'the essential',
     ]
 
     AUTHOR_CHAFF = [
@@ -145,6 +156,7 @@ def filter_chaff(title: str, author: str) -> bool:
         'staff',
         'inc',
         'scholastic',
+        'john virgil'
     ]
 
     # Test if it's a weird, non-original version.
@@ -157,10 +169,18 @@ def filter_chaff(title: str, author: str) -> bool:
     return False
 
 
+def purge_chaff():
+    """Remove all work that fit our chaff criteria; useful for removing works
+    that fit chaff criteria added after they were."""
+    for work in Work.objects.all():
+        if filter_chaff(work.title, work.author.full_name()):
+            work.delete()
+
+
 def search_or_update(title: str, author: str) -> List[Work]:
     """Try to find the work locally; if unable, Add the work to the database
        based on searching with the Google Api."""
-    results = list(search_local(title, author))
+    results = search_local(title, author)
 
     # If we found a local result, return it. If not, query the API.
     if results:

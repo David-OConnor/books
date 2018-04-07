@@ -89,7 +89,10 @@ def _process_results(items: List[dict]) -> Iterator[GBook]:
         isbns = []
         for ident in volume.get('industryIdentifiers', []):
             if ident['type'] == 'ISBN_10':
-                isbns.append(int('978' + ident['identifier']))
+                try:
+                    isbns.append(int('978' + ident['identifier']))
+                except ValueError: # eg an X in the identifier.
+                    pass
             elif ident['type'] == 'ISBN_13':
                 isbns.append(int(ident['identifier']))
 

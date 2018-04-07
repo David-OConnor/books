@@ -125,7 +125,7 @@ class SourceUpdateTestCase(TestCase):
         )
         self.assertEqual(
             'https://www.kobo.com/us/en/ebook/oliver-twist-64',
-            kobo.scrape(self.oliver[0]
+            kobo.scrape(self.oliver[0])
         )
         self.assertNotEqual(
             'https://www.kobo.com/us/en/ebook/the-origin-of-species-by-natural-selection-6th-edition',
