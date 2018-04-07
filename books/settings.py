@@ -39,13 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'django.contrib.postgres',  # Required for Postgres search.
     'rest_framework',
     'corsheaders',
     # 'webpack_loader',
 
-    'main',
-
+    # 'main.apps.AppConfig', # This is the modern way of doing it, but I get"
+    #"django.core.exceptions.ImproperlyConfigured: 'main.apps.AppConfig' must "
+    #supply a name attribute."
+    'main'
 ]
 
 """
@@ -156,9 +159,6 @@ STATICFILES_DIRS = (
 
 # todo look up what this is for
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAdminUser',
-    # ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,
 }

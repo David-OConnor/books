@@ -1,42 +1,75 @@
-from typing import List
+import xml.etree.ElementTree as ET
+from typing import NamedTuple, Optional
 
 import requests
+from requests_html import HTMLSession
 
-from ..models import Work, Author, Source
+from ..models import Work
 from .auth import LIBRARYTHING_KEY as KEY
 
 # API ref: https://www.librarything.com/services/
 
+#
+#
+# class LtBook(NamedTuple):
+#     # Information stored in an Abook (And for similar tuples in API files) encloses
+#     # The information the source contains; we may not use all of it in the db, or may
+#     # wish for more.
+#     internal_id: int
+#     title: str
+#     author_first: Optional[str]
+#     author_last: str
+#     publication_year: Optional[int]
+#     translator: Optional[str]
+#
+#     def __repr__(self):
+#         return f"title: {self.title} author: {self.author_first} {self.author_last}\n" \
+#                f"publication: {self.publication_year}"
 
-BASE_URL = 'http://www.librarything.com/services/rest/1.1/'
 
-source, _ = Source.objects.get_or_create(
-        name='LibraryThing',
-        url='https://www.librarything.com/',
-        information=True
-)
-
-
-test_isbn = 9780099469506  # todo temp
-
-
-def find_isbn(isbn: int=test_isbn) -> dict:
+# todo Just like with goodreads, we could pull more data, but for now,
+# just find the internal id, so we can link to it.
+def scrape(work: Work) -> Optional[int]:
+    """Search using .ck.getwork isn't working for name searches;
+    crawl the page instead."""
     payload = {
-        # 'method_name': 'librarything.ck.getwork',
-        'apikey': KEY,
-        'isbn': str(isbn)
+        'search': work.title,
+        'searchtype': 101,  # 101 is for books.
+        'sortchoice': 0 # 0 is for sort by relevance
     }
-    r = requests.get(BASE_URL + '?method=librarything.ck.getwork', params=payload)
 
-    xml_raw = r.text
-
-
-def query_title(title: str) -> dict:
-    payload = {
-        # 'method_name': 'librarything.ck.getwork',
-        'apikey': KEY,
-        'name': title
-    }
-    r = requests.get(BASE_URL + '?method=librarything.ck.getwork', params=payload)
+    session = HTMLSession()
+    r = session.get('https://www.librarything.com/search.php?', params=payload)
     return r
-    return r.json()
+    # todo parsing isn't working... JS magic preventing it?
+    work_div = r.html.find('.works', first=True)
+
+def search(work: Work) -> Optional[int]:
+    """Find a book by Title. Libarything's api isn't very flexible.
+    http: // www.librarything.com / services / rest / documentation / 1.1 /
+    librarything.ck.getwork.php"""
+
+    # todo DRY between this and goodreads
+
+    payload = {
+        'method': 'librarything.ck.getwork',
+        'name': work.title,
+        'api_key': KEY,
+    }
+
+    r = requests.get('http://www.librarything.com/services/rest/1.1/', params=payload)
+
+    root = ET.fromstring(r.text)
+
+    return root
+    works = root.find('ltml').find.findall('item')
+
+    for lt_work in works:
+        # This is fragile; requires name to be exact, other than case.
+        if lt_work.find('author').text.lower() == work.author.full_name().lower():
+            return int(lt_work.attribute['id'])
+
+
+def url_from_id(internal_id: int) -> str:
+    """Find the goodreads URL associated with a book from its id."""
+    return f"http://www.librarything.com/work/1060/{internal_id}"

@@ -4,7 +4,7 @@ import saturn
 
 from main.src.gutenberg import GbBook
 from .models import Work, Author, Isbn, GutenbergWork, Source, WorkSource
-from .src import db, google, gutenberg, goodreads, adelaide
+from .src import db, google, gutenberg, goodreads, adelaide, kobo
 
 
 class SearchTestCase(TestCase):
@@ -73,8 +73,7 @@ class IsbnValidationTestCase(TestCase):
 
     def test_invalid_isbn(self):
         # Test an ISBN that has a number of digits neither 13 nor 10.
-        with pytest.raises(AttributeError):
-            Isbn.new(123456, self.dr)
+        self.assertRaises(AttributeError, Isbn.new(123456, self.dr))
 
     def test_convert_isbn_10(self):
         # Should convert isbn10 format to isbn13.
@@ -84,7 +83,7 @@ class IsbnValidationTestCase(TestCase):
     def test_isbn_13(self):
         # Should leave the input isbn intact.
         isbn = Isbn.new(1234567890123, self.dr)
-        self.assertEqual(isbn.isbn, 1234567890123)
+        self.assertEqual(1234567890123, isbn.isbn)
 
 
 class SourceUpdateTestCase(TestCase):
@@ -104,13 +103,36 @@ class SourceUpdateTestCase(TestCase):
         self.oliver = Work.objects.create(title="Oliver Twist", author=dickens)
 
     def test_goodreads(self):
-        # Import here, since importing these modules adds their source to the db.
-        from .src import goodreads
+        self.assertEqual(61535, goodreads.search(self.selfish))
+        self.assertEqual(22463, goodreads.search(self.origin))
+        self.assertEqual(18254, goodreads.search(self.oliver))
+        self.assertNotEqual(22463, goodreads.search(self.wrong_author_origin))
 
-        self.assertEqual(goodreads.search(self.selfish), 61535)
-        self.assertEqual(goodreads.search(self.origin), 22463)
-        self.assertEqual(goodreads.search(self.oliver), 18254)
-        self.assertNotEqual(goodreads.search(self.wrong_author_origin), 22463)
+    def test_librarything(self):
+        self.assertEqual(23538, goodreads.search(self.selfish))
+        self.assertEqual(23533, goodreads.search(self.origin))
+        self.assertEqual(2215, goodreads.search(self.oliver))
+        self.assertNotEqual(23533, goodreads.search(self.wrong_author_origin))
+
+    def test_kobo(self):
+        self.assertEqual(
+            'https://www.kobo.com/us/en/ebook/the-selfish-gene-1',
+            kobo.scrape(self.selfish)[0]
+        )
+        self.assertEqual(
+            'https://www.kobo.com/us/en/ebook/the-origin-of-species-by-natural-selection-6th-edition',
+            kobo.scrape(self.origin[0])
+        )
+        self.assertEqual(
+            'https://www.kobo.com/us/en/ebook/oliver-twist-64',
+            kobo.scrape(self.oliver[0]
+        )
+        self.assertNotEqual(
+            'https://www.kobo.com/us/en/ebook/the-origin-of-species-by-natural-selection-6th-edition',
+            kobo.scrape(self.wrong_author_origin[0])
+        )
+
+
 
 
 class AddWorksTestCase(TestCase):
@@ -161,7 +183,7 @@ class AddWorksTestCase(TestCase):
         # top result here
         queried = next(google.search_title_author('selfish gene', 'dawkins'))
 
-        self.assertEqual(queried, expected)
+        self.assertEqual(expected, queried)
 
     def test_goodreads_query(self):
         pass
@@ -309,9 +331,9 @@ class ParsersTestCase(unittest.TestCase):
             url='https://ebooks.adelaide.edu.au/a/aristophanes/peace/'
         )
 
-        self.assertEqual(adelaide.parse_link(*poems_link), poems_expected)
-        self.assertEqual(adelaide.parse_link(*verner_link), verner_expected)
-        self.assertEqual(adelaide.parse_link(*peace_link), peace_expected)
+        self.assertEqual(poems_expected, adelaide.parse_link(*poems_link))
+        self.assertEqual(verner_expected, adelaide.parse_link(*verner_link))
+        self.assertEqual(peace_expected, adelaide.parse_link(*peace_link))
 
     def test_gutenberg_index_parser_basic(self):
         victories_text = '''Victories of Wellington and the British Armies,                          56689
@@ -352,9 +374,9 @@ class ParsersTestCase(unittest.TestCase):
             editor=None
         )
 
-        self.assertEqual(gutenberg.parse_entry(victories_text), victories_expected)
-        self.assertEqual(gutenberg.parse_entry(turngenev_text), turngenev_expected)
-        self.assertEqual(gutenberg.parse_entry(rim_text), rim_expected)
+        self.assertEqual(victories_expected, gutenberg.parse_entry(victories_text))
+        self.assertEqual(turngenev_expected, gutenberg.parse_entry(turngenev_text))
+        self.assertEqual(rim_expected, gutenberg.parse_entry(rim_text))
 
     def test_gutenberg_index_parser_advanced(self):
         hol_text = '''In het Hol van den Leeuw, door J. Fabius                                 56561

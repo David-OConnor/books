@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 from . import goodreads
 from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
     GutenbergWork
-from . import google, adelaide
+from . import google, adelaide, kobo
 
 
 # Try to keep database modifications from APIs in this file.
@@ -65,18 +65,32 @@ def update_worksources(work: Work) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
 
-    update_sources_adelaide_gutenberg(work, True)
-    update_sources_adelaide_gutenberg(work, False)
+    # update_sources_adelaide_gutenberg(work, True)
+    # update_sources_adelaide_gutenberg(work, False)
+    #
+    # # for goodreads_id in goodreads.search(work):
+    # goodreads_id = goodreads.search(work)
+    # if goodreads_id:
+    #     WorkSource.objects.update_or_create(
+    #         work=work,
+    #         source=Source.objects.get(name='GoodReads'),
+    #         defaults={
+    #             'internal_id': goodreads_id,
+    #             'book_url': goodreads.url_from_id(goodreads_id)
+    #         }
+    #     )
 
-    # for goodreads_id in goodreads.search(work):
-    goodreads_id = goodreads.search(work)
-    if goodreads_id:
+    # Update from kobo
+    kobo_data = kobo.scrape(work)
+    if kobo_data:
+        kobo_url, kobo_price = kobo_data
+        kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
         WorkSource.objects.update_or_create(
             work=work,
-            source=Source.objects.get(name='GoodReads'),
+            source=Source.objects.get(name='Kobo'),
             defaults={
-                'internal_id': goodreads_id,
-                'book_url': goodreads.url_from_id(goodreads_id)
+                'purchase_url': kobo_url,
+                'price': kobo_price
             }
         )
 

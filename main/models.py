@@ -44,6 +44,12 @@ class Source(models.Model):
     purchases = models.BooleanField(default=False)
 
     def __str__(self):
+        flags = ' '.join([
+            'info' if self.information else '',
+            'downloads' if self.free_downloads else '',
+            'purchases' if self.purchases else ''
+        ])
+
         return self.name
 
 
@@ -173,6 +179,7 @@ class WorkSource(models.Model):
     # used internally.
     internal_id = models.IntegerField(blank=True, null=True)
 
+    # Pair with a currency field.
     price = models.FloatField(blank=True, null=True)
 
     book_url = models.CharField(max_length=200, blank=True, null=True)
@@ -261,6 +268,13 @@ def populate_initial_sources():
         }
     )
 
+    Source.objects.update_or_create(
+        name='LibraryThing',
+        defaults={
+            'url': 'https://www.librarything.com/',
+            'information': True
+        }
+    )
 
 def populate_initial_resources():
     Resource.objects.update_or_create(

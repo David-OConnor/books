@@ -13,8 +13,6 @@ from .auth import GOODREADS_KEY as KEY
 
 # API ref: https://www.goodreads.com/api
 
-BASE_URL = 'https://goodreads.com/'
-
 
 class GrBook(NamedTuple):
     title: str
@@ -33,9 +31,8 @@ class GrBook(NamedTuple):
 
     price: Optional[float]
 
+# todo make goodreads your main populator, instead of google??
 
-
-# todo make goodreads your main populator, instead of google!
 
 def search(work: Work) -> Optional[int]:
     """Find the unique goodreads ids associated with a work's isbns."""
@@ -44,51 +41,52 @@ def search(work: Work) -> Optional[int]:
     # todo just title search for now
     payload = {
         # 'q': str(isbn.isbn),
-        'q': f'{work.title}',
+        'q': work.title,
         'key': KEY,
         # 'search': 'isbn'  # title, author or all. I guess all for isbn??
         'search': 'title'  # title, author or all. I guess all for isbn??
     }
 
-    r = requests.get(BASE_URL + 'search/index.xml', params=payload)
+    r = requests.get('https://goodreads.com/search/index.xml', params=payload)
 
     root = ET.fromstring(r.text)
     works = root.find('search').find('results').findall('work')
 
     for gr_work in works:
         book = gr_work.find('best_book')
+        # This is fragile; requires name to be exact, other than case.
         if book.find('author').find('name').text.lower() == work.author.full_name().lower():
             return int(book.find('id').text)
 
 
-def search_title_author(title: str, author: str) -> Iterator[GrBook]:
-    """Find the unique goodreads ids associated with a work's isbns."""
-    # for isbn in Isbn.objects.filter(work=work):
-    # todo deal with different editions!
-    # todo just title search for now
-    payload = {
-        # 'q': str(isbn.isbn),
-        'q': f'{title} {author}]',
-        'key': KEY,
-        # 'search': 'isbn'  # title, author or all. I guess all for isbn??
-        'search': 'all'  # title, author or all. I guess all for isbn??
-    }
-
-    r = requests.get(BASE_URL + 'search/index.xml', params=payload)
-
-    root = ET.fromstring(r.text)
-    works = root.find('search').find('results').findall('work')
-
-    for gr_work in works:
-        book = gr_work.find('best_book')
-        if book.find('author').find('name').text.lower() == 0:
-
-            gr_id = int(book.find('id').text)
-
-            publ_year = gr_work.find('original_publication_year').text
-            publ_month = gr_work.find('original_publication_month').text
-            publ_day = gr_work.find('original_publication_day').text
-            publication_date = saturn.from_str(f'{publ_year}-{publ_month}-{publ_day}', 'YYYY-MM-DD')
+# def search_title_author(title: str, author: str) -> Iterator[GrBook]:
+#     """Find the unique goodreads ids associated with a work's isbns."""
+#     # for isbn in Isbn.objects.filter(work=work):
+#     # todo deal with different editions!
+#     # todo just title search for now
+#     payload = {
+#         # 'q': str(isbn.isbn),
+#         'q': f'{title} {author}]',
+#         'key': KEY,
+#         # 'search': 'isbn'  # title, author or all. I guess all for isbn??
+#         'search': 'all'  # title, author or all. I guess all for isbn??
+#     }
+#
+#     r = requests.get(BASE_URL + 'search/index.xml', params=payload)
+#
+#     root = ET.fromstring(r.text)
+#     works = root.find('search').find('results').findall('work')
+#
+#     for gr_work in works:
+#         book = gr_work.find('best_book')
+#         if book.find('author').find('name').text.lower() == 0:
+#
+#             gr_id = int(book.find('id').text)
+#
+#             publ_year = gr_work.find('original_publication_year').text
+#             publ_month = gr_work.find('original_publication_month').text
+#             publ_day = gr_work.find('original_publication_day').text
+#             publication_date = saturn.from_str(f'{publ_year}-{publ_month}-{publ_day}', 'YYYY-MM-DD')
 
 
 def url_from_id(internal_id: int) -> str:
