@@ -84,12 +84,25 @@ def update_worksources(work: Work) -> None:
     kobo_data = kobo.scrape(work)
     if kobo_data:
         kobo_url, kobo_price = kobo_data
-        kobo_price = float(kobo_price[1:]) if kobo_price else None  # todo removes dollar sign. Janky/inflexible
+        if kobo_price:
+            if kobo_price == 'free':
+                purchase_url = None
+                epub_url = kobo_url
+                kobo_price = None
+            else:
+                purchase_url = kobo_url
+                epub_url = None
+                kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
+        else:
+            epub_url = None
+            purchase_url = kobo_url
+
         WorkSource.objects.update_or_create(
             work=work,
             source=Source.objects.get(name='Kobo'),
             defaults={
-                'purchase_url': kobo_url,
+                'purchase_url': purchase_url,
+                'epub_url': epub_url,
                 'price': kobo_price
             }
         )
@@ -148,6 +161,12 @@ def filter_chaff(title: str, author: str) -> bool:
         'with audio',
         'library',
         'the essential',
+        'read-aloud',
+        'storybook',
+        'coloring book',
+        'print edition',
+        'analysis',
+        'summary',
     ]
 
     AUTHOR_CHAFF = [

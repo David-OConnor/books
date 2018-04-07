@@ -151,6 +151,7 @@ const Book = ({book}: {book: Work}) => {
     )
 
     const purchaseSources = book.work_sources.filter(ws => ws.purchase_url)
+    // todo sort by price, ascending
     const purchaseItems = purchaseSources.map(ws =>
         (
             <div key={ws.id}>
@@ -161,8 +162,6 @@ const Book = ({book}: {book: Work}) => {
             </div>
         )
     )
-
-    //     <h5>No free sources available 🙁 </h5>
 
     return (
         <div>
@@ -202,7 +201,7 @@ const Book = ({book}: {book: Work}) => {
                 >
 
                     <h4>Free downloads</h4>
-                    {freeItems}
+                    {freeItems.length ? freeItems : <h5>No free sources available 🙁 </h5>}
                 </Col>
 
                 <Col xs={4} style={{background: '#e3ffeb'}}>

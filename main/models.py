@@ -252,7 +252,8 @@ def populate_initial_sources():
         name='Kobo',
         defaults={
             'url': 'https://www.kobo.com/',
-            'purchases': True
+            'purchases': True,
+            'free_downloads': True
         }
     )
 

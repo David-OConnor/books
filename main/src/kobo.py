@@ -29,11 +29,21 @@ def scrape(work: Work) -> Optional[Tuple[str, str]]:
     url = next(iter(best_match.links))
 
     r_page = session.get(url)
-    price_div = r_page.html.find('.active-price', first=True)
-    if not price_div:
-        price = None
-    else:
-        price = price_div.find('.price', first=True).text
+
+    # First, check if there's a free version.
+    price = None
+    check_these = r_page.html.find('.pricing-title')
+    for heading in check_these:
+        if heading.text.lower() == 'free ebook':
+            price = 'free'
+            break
+
+    if price != 'free':
+
+        price_div = r_page.html.find('.active-price', first=True)
+
+        if price_div:
+            price = price_div.find('.price', first=True).text
 
     return url, price
 
