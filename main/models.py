@@ -101,7 +101,7 @@ class AdelaideWork(models.Model):
     url = models.CharField(max_length=150)
 
     def __str__(self):
-        return f"{self.title}, by {self.author_last}"
+        return f"{self.title}, by {self.author_first} {self.author_last}"
 
     class Meta:
         unique_together = ('author_last', 'title')

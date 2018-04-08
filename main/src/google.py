@@ -6,6 +6,8 @@ import requests
 import saturn
 from saturn.from_arrow import ParserError
 
+from . import util
+
 
 # Overall notes: Robust API, but some parts are no longer being maintained.
 # Prime candidate to populate new entries in our DB>
@@ -15,7 +17,7 @@ from saturn.from_arrow import ParserError
 
 class GBook(NamedTuple):
     title: str
-    authors: List[str]
+    authors: List[Tuple[str, str]]
     isbns: List[int]
 
     internal_id: str
@@ -37,23 +39,23 @@ class GBook(NamedTuple):
 base_url = 'https://www.googleapis.com/books/v1/'
 
 
-def search_isbn(isbn: str='0671004107'):
-    # todo search by ISBN on Google is currently broken.
-    url = base_url + 'volumes'
-    payload = {
-        'q': f'ISBN:"{isbn}"',
-        'printType': 'books',  # Perhaps avoids magazine etc.
-        # 'projection': 'full',
-        'filter': 'ebooks',
-    }
-
-    result = requests.get(url, params=payload)
-    return result.json()
-
-    result = result.json()
-    result = [book['volumeInfo'] for book in result['items']]
-
-    return result
+# def search_isbn(isbn: str='0671004107'):
+#     # todo search by ISBN on Google is currently broken.
+#     url = base_url + 'volumes'
+#     payload = {
+#         'q': f'ISBN:"{isbn}"',
+#         'printType': 'books',  # Perhaps avoids magazine etc.
+#         # 'projection': 'full',
+#         'filter': 'ebooks',
+#     }
+#
+#     result = requests.get(url, params=payload)
+#     return result.json()
+#
+#     result = result.json()
+#     result = [book['volumeInfo'] for book in result['items']]
+#
+#     return result
 
 
 def search_title_author(title: str, author: str) -> Iterator[GBook]:
@@ -63,7 +65,6 @@ def search_title_author(title: str, author: str) -> Iterator[GBook]:
         'q': f'intitle:"{title}"inauthor:"{author}"',
         'printType': 'books',
         # 'projection': 'full',
-        # 'filter': 'ebooks',
         # 'key': KEY # todo necesary?
     }
 
@@ -85,6 +86,8 @@ def _process_results(items: List[dict]) -> Iterator[GBook]:
         authors = volume.get('authors')
         if not authors:  # If authors is blank, just move on.
             continue
+
+        authors = [util.split_author(a) for a in authors]
 
         isbns = []
         for ident in volume.get('industryIdentifiers', []):

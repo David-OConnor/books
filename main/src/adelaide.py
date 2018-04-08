@@ -5,6 +5,7 @@ from typing import Optional, NamedTuple
 from requests_html import HTMLSession
 
 from main.models import AdelaideWork
+from . import util
 
 BASE_URL = 'https://ebooks.adelaide.edu.au/meta/titles/'
 
@@ -35,6 +36,9 @@ def parse_link(text: str, href: str) -> Optional[ABook]:
 
     title, misc, publication_year = match.groups()
 
+    # todo Currently doesn't work in the cases where no author is listed in the text;
+    # todo could deal with this if listed in the URL which it may be.
+
     # Now parse misc: This will be the author's first and last name, and filler
     # such as translator, illustrator etc.
 
@@ -55,16 +59,7 @@ def parse_link(text: str, href: str) -> Optional[ABook]:
     # if translator_match:
     #     author, translator = translator_match.groups()
 
-    # Divide author into first and last names.
-    # Note: This is imperfect.
-    author = author.split(' ')
-    if len(author) == 1:
-        author_first, author_last = None, author[0]
-    else:
-        # If len is more than 2, it may be initials or a middle name; group these
-        # into the first name.
-        *author_first, author_last = author
-        author_first = ' '.join(author_first)
+    author_first, author_last = util.split_author(author)
 
     # todo: You should be able to modify or remove this sanity check once you
     # todo clean up your algorithm.
@@ -72,6 +67,10 @@ def parse_link(text: str, href: str) -> Optional[ABook]:
         return
     if author_first and len(author_first) > 100:
         return
+
+    title = title.replace("’", "'")
+    author_first = author_first.replace("’", "'")
+    author_last = author_last.replace("’", "'")
 
     return ABook(
         title=title,

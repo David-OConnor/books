@@ -4,6 +4,7 @@ from typing import TextIO, NamedTuple, Optional
 import requests
 
 from main.models import Source, WorkSource, GutenbergWork
+from . import util
 
 
 # Gutenberg forbids using automated tools to parse their site directly, but provides
@@ -70,15 +71,7 @@ def parse_entry(text: str) -> Optional[GbBook]:
 
     title, author, extras1, extras2, extras3 = match2.groups()
 
-    # todo dry between here and adelaide re first/last author split
-    # Divide author into first and last names.
-    # Note: This is imperfect.
-    author = author.split(' ')
-    if len(author) == 1:
-        author_first, author_last = '', author[0]
-    else:
-        *author_first, author_last = author
-        author_first = ' '.join(author_first)
+    author_first, author_last = util.split_author(author)
 
     # Pull language, subtitle, illustrator etc from extras, if available.
     language, illustrator, subtitle, editor = None, None, None, None

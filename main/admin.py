@@ -14,8 +14,8 @@ class WorkAdmin(ModelAdmin):
 
 @register(AdelaideWork)
 class AdelaideWorkAdmin(ModelAdmin):
-    list_display = ('title', 'author_first', 'author_last', 'translator')
-    search_fields = ('title', 'author_first', 'author_last')
+    list_display = ('title', 'author_first', 'author_last', 'translator', 'publication_year')
+    search_fields = ('title', 'author_first', 'author_last', 'publication_year')
 
 
 @register(GutenbergWork)

@@ -290,8 +290,20 @@ class ParsersTestCase(unittest.TestCase):
             url='https://ebooks.adelaide.edu.au/l/literature/english-men-of-letters/keats/'
         )
 
+        ronan_link = ('Saint Ronan’s Well / Walter Scott [1824]',
+                      's/scott/walter/ronan/')
+        ronan_expected = adelaide.ABook(
+            title='Saint Ronan\'s Well',
+            author_first='Walter',
+            author_last='Scott',
+            publication_year=1824,
+            translator=None,
+            url='https://ebooks.adelaide.edu.au/l/literature/english-men-of-letters/keats/'
+        )
+
         self.assertEqual(adelaide.parse_link(*abbot_link), abbot_expected)
         self.assertEqual(adelaide.parse_link(*keats_link), keats_expected)
+        self.assertEqual(adelaide.parse_link(*ronan_link), ronan_expected)
 
     def test_adelaide_link_parser_advanced(self):
         """This test includes difficult-to-parse author names, etc"""
@@ -313,7 +325,7 @@ class ParsersTestCase(unittest.TestCase):
             'w/wood/ellen/verner-s-pride/'
         )
         verner_expected = adelaide.ABook(
-            title='Verner’s Pride',
+            title='Verner\'s Pride',
             author_first='Ellen',
             author_last='Wood',
             publication_year=1863,

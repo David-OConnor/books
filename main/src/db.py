@@ -65,7 +65,7 @@ def update_worksources(work: Work) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
 
-    # update_sources_adelaide_gutenberg(work, True)
+    update_sources_adelaide_gutenberg(work, True)
     # update_sources_adelaide_gutenberg(work, False)
     #
     # # for goodreads_id in goodreads.search(work):
@@ -80,32 +80,32 @@ def update_worksources(work: Work) -> None:
     #         }
     #     )
 
-    # Update from kobo
-    kobo_data = kobo.scrape(work)
-    if kobo_data:
-        kobo_url, kobo_price = kobo_data
-        if kobo_price:
-            if kobo_price == 'free':
-                purchase_url = None
-                epub_url = kobo_url
-                kobo_price = None
-            else:
-                purchase_url = kobo_url
-                epub_url = None
-                kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
-        else:
-            epub_url = None
-            purchase_url = kobo_url
-
-        WorkSource.objects.update_or_create(
-            work=work,
-            source=Source.objects.get(name='Kobo'),
-            defaults={
-                'purchase_url': purchase_url,
-                'epub_url': epub_url,
-                'price': kobo_price
-            }
-        )
+    # # Update from kobo
+    # kobo_data = kobo.scrape(work)
+    # if kobo_data:
+    #     kobo_url, kobo_price = kobo_data
+    #     if kobo_price:
+    #         if kobo_price == 'free':
+    #             purchase_url = None
+    #             epub_url = kobo_url
+    #             kobo_price = None
+    #         else:
+    #             purchase_url = kobo_url
+    #             epub_url = None
+    #             kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
+    #     else:
+    #         epub_url = None
+    #         purchase_url = kobo_url
+    #
+    #     WorkSource.objects.update_or_create(
+    #         work=work,
+    #         source=Source.objects.get(name='Kobo'),
+    #         defaults={
+    #             'purchase_url': purchase_url,
+    #             'epub_url': epub_url,
+    #             'price': kobo_price
+    #         }
+    #     )
 
 
 def search_local(title: str, author: str) -> List[Work]:
@@ -175,15 +175,16 @@ def filter_chaff(title: str, author: str) -> bool:
         'staff',
         'inc',
         'scholastic',
-        'john virgil'
+        'john virgil',
+        ', sir'  # eg first='author conan doyle', last='sir'
     ]
 
     # Test if it's a weird, non-original version.
-    for chaff in TITLE_CHAFF:
-        if chaff in title.lower():
+    for t_chaff in TITLE_CHAFF:
+        if t_chaff in title.lower():
             return True
-    for chaff in AUTHOR_CHAFF:
-        if chaff in author.lower():
+    for a_chaff in AUTHOR_CHAFF:
+        if a_chaff in author.lower():
             return True
     return False
 
@@ -191,6 +192,9 @@ def filter_chaff(title: str, author: str) -> bool:
 def purge_chaff():
     """Remove all work that fit our chaff criteria; useful for removing works
     that fit chaff criteria added after they were."""
+    for author in Author.objects.all():
+        if filter_chaff('any_text_not_in_filters', author.full_name()):
+            author.delete()
     for work in Work.objects.all():
         if filter_chaff(work.title, work.author.full_name()):
             work.delete()
@@ -200,7 +204,6 @@ def search_or_update(title: str, author: str) -> List[Work]:
     """Try to find the work locally; if unable, Add the work to the database
        based on searching with the Google Api."""
     results = search_local(title, author)
-
     # If we found a local result, return it. If not, query the API.
     if results:
         return results
@@ -208,21 +211,18 @@ def search_or_update(title: str, author: str) -> List[Work]:
     internet_results = google.search_title_author(title, author)
     if not internet_results:
         return []
-
     new_results = []
     for book in internet_results:
-        if filter_chaff(book.title, book.authors[0]):
-            continue
 
         # todo just top author for now.
-        try:
-            author_first, author_last = book.authors[0].split()
-        except ValueError:
-            author_last, author_first = book.authors[0], ''
+        author_first, author_last = book.authors[0]
 
         author, _ = Author.objects.get_or_create(first_name=author_first, last_name=author_last)
 
-        if len(title) > 100:
+        if filter_chaff(book.title, author.full_name()):
+            continue
+
+        if len(book.title) > 100:
             continue
 
         # Add the new work to the database.
