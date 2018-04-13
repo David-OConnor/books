@@ -379,7 +379,7 @@ class ContactForm extends React.Component<ContactProps, ContactState> {
                     Submit
                 </Button>
 
-                {this.state.submitted ? <h3>Message submitted</h3> : null}
+                {this.state.submitted ? <h3>Thanks for the feedback! 🙂</h3> : null}
             </FormGroup>
         )
     }
@@ -390,12 +390,15 @@ const AboutPage = () => (
     <Col xs={12} md={8} mdOffset={2}>
         <h2>What's the point?</h2>
         <p>
-            Many older books are in the public domain, meaning legal copies are avilable online.
+            Many older books are in the public domain, allowing free copies to be avilable online.
             This site lets you search for books, and shows if free ebooks are available.
             It'll also show you where to buy them, eg for modern books.
+        </p>
 
-            We maintain a curated list of books, with a focus on original works, ie
-            not derivative editions or spinoffs.
+        <p>
+            We maintain a curated list of books, combining information and links
+            from multiple sources. Our goal is to provide quick access to the books
+            you're looking for, without clutter or distractions.
 
             We're just getting started; if you have suggestions or critique, please
             use the form below.
@@ -403,19 +406,17 @@ const AboutPage = () => (
 
         <ContactForm/>
 
-        <p>
-            Special thanks to:
-            <ul>
-                <li>
-                    Project Gutenberg and The University of Adelaide, for their excellent
-                    curated libraries of free ebooks.
-                </li>
+        <h4>Special thanks to:</h4>
+        <ul>
+            <li>
+                Project Gutenberg and The University of Adelaide, for their excellent
+                curated libraries of free ebooks.
+            </li>
 
-                <li>
-                    Google, for their Books search tools.
-                </li>
-            </ul>
-        </p>
+            <li>
+                Google, for their Books search tools.
+            </li>
+        </ul>
     </Col>
 )
 

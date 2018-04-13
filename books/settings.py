@@ -21,13 +21,21 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '#k-b7j1ucvc2#w)lrmw0^pq@2v^n#%4x7^%8vkyu@r4e4+0ngv'
+ON_HEROKU = True if 'DATABASE_URL' in os.environ else False
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if ON_HEROKU:
+    # SECURITY WARNING: don't run with debug turned on in production!
+    DEBUG = False
+    # SECURITY WARNING: keep the secret key used in production secret!
+    SECRET_KEY = os.environ['SECRET_KEY']
+else:
+    DEBUG = True
+    SECRET_KEY = '#k-b7j1ucvc2#w)lrmw0^pq@2v^n#%4x7^%8vkyu@r4e4+0ngv'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'readseek.org', 'readseek.herokapp.com',
+                 'www.readseek.org']
 
 
 # Application definition
@@ -97,6 +105,10 @@ WSGI_APPLICATION = 'books.wsgi.application'
 LOCAL_DB = 'postgres://david:test@localhost:5432/books'
 
 DATABASES = {'default': dj_database_url.config(default=LOCAL_DB)}
+
+# For connecting to Heroku's database from a local machine:
+# from private import HEROKU_DB_URL
+# DATABASES = {'default': dj_database_url.config(default=HEROKU_DB_URL)}
 
 
 # Password validation
