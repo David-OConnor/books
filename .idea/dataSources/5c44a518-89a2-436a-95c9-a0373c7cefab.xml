@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="Books DB">
-  <database-model serializer="dbm" rdbms="POSTGRES" format-version="4.7">
+  <database-model serializer="dbm" rdbms="POSTGRES" format-version="4.8">
     <root id="1"/>
     <database id="2" parent="1" name="books">
       <ObjectId>18413</ObjectId>
@@ -274,7 +274,7 @@
     </table>
     <column id="51" parent="34" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
       <DefaultExpression>nextval(&apos;auth_group_id_seq&apos;::regclass)</DefaultExpression>
@@ -282,7 +282,7 @@
     </column>
     <column id="52" parent="34" name="name">
       <Position>2</Position>
-      <DataType>varchar(80)|0</DataType>
+      <DataType>varchar(80)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
@@ -313,7 +313,7 @@
     </key>
     <column id="58" parent="35" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
       <DefaultExpression>nextval(&apos;auth_group_permissions_id_seq&apos;::regclass)</DefaultExpression>
@@ -321,13 +321,13 @@
     </column>
     <column id="59" parent="35" name="group_id">
       <Position>2</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="60" parent="35" name="permission_id">
       <Position>3</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
@@ -386,7 +386,7 @@ permission_id</ColNames>
     </foreign-key>
     <column id="69" parent="36" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
       <DefaultExpression>nextval(&apos;auth_permission_id_seq&apos;::regclass)</DefaultExpression>
@@ -394,19 +394,19 @@ permission_id</ColNames>
     </column>
     <column id="70" parent="36" name="name">
       <Position>2</Position>
-      <DataType>varchar(255)|0</DataType>
+      <DataType>varchar(255)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1786</StateNumber>
     </column>
     <column id="71" parent="36" name="content_type_id">
       <Position>3</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="72" parent="36" name="codename">
       <Position>4</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
@@ -450,7 +450,7 @@ codename</ColNames>
     </foreign-key>
     <column id="79" parent="37" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
       <DefaultExpression>nextval(&apos;auth_user_id_seq&apos;::regclass)</DefaultExpression>
@@ -458,60 +458,60 @@ codename</ColNames>
     </column>
     <column id="80" parent="37" name="password">
       <Position>2</Position>
-      <DataType>varchar(128)|0</DataType>
+      <DataType>varchar(128)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="81" parent="37" name="last_login">
       <Position>3</Position>
-      <DataType>timestamp with time zone|0</DataType>
+      <DataType>timestamp with time zone|0s</DataType>
       <StateNumber>1791</StateNumber>
     </column>
     <column id="82" parent="37" name="is_superuser">
       <Position>4</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="83" parent="37" name="username">
       <Position>5</Position>
-      <DataType>varchar(150)|0</DataType>
+      <DataType>varchar(150)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1795</StateNumber>
     </column>
     <column id="84" parent="37" name="first_name">
       <Position>6</Position>
-      <DataType>varchar(30)|0</DataType>
+      <DataType>varchar(30)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="85" parent="37" name="last_name">
       <Position>7</Position>
-      <DataType>varchar(150)|0</DataType>
+      <DataType>varchar(150)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1797</StateNumber>
     </column>
     <column id="86" parent="37" name="email">
       <Position>8</Position>
-      <DataType>varchar(254)|0</DataType>
+      <DataType>varchar(254)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1788</StateNumber>
     </column>
     <column id="87" parent="37" name="is_staff">
       <Position>9</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="88" parent="37" name="is_active">
       <Position>10</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="89" parent="37" name="date_joined">
       <Position>11</Position>
-      <DataType>timestamp with time zone|0</DataType>
+      <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
@@ -542,7 +542,7 @@ codename</ColNames>
     </key>
     <column id="95" parent="38" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
       <DefaultExpression>nextval(&apos;auth_user_groups_id_seq&apos;::regclass)</DefaultExpression>
@@ -550,13 +550,13 @@ codename</ColNames>
     </column>
     <column id="96" parent="38" name="user_id">
       <Position>2</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="97" parent="38" name="group_id">
       <Position>3</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
@@ -615,7 +615,7 @@ group_id</ColNames>
     </foreign-key>
     <column id="106" parent="39" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
       <DefaultExpression>nextval(&apos;auth_user_user_permissions_id_seq&apos;::regclass)</DefaultExpression>
@@ -623,13 +623,13 @@ group_id</ColNames>
     </column>
     <column id="107" parent="39" name="user_id">
       <Position>2</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
     <column id="108" parent="39" name="permission_id">
       <Position>3</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1779</StateNumber>
     </column>
@@ -688,7 +688,7 @@ permission_id</ColNames>
     </foreign-key>
     <column id="117" parent="40" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1781</StateNumber>
       <DefaultExpression>nextval(&apos;django_admin_log_id_seq&apos;::regclass)</DefaultExpression>
@@ -696,41 +696,41 @@ permission_id</ColNames>
     </column>
     <column id="118" parent="40" name="action_time">
       <Position>2</Position>
-      <DataType>timestamp with time zone|0</DataType>
+      <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1781</StateNumber>
     </column>
     <column id="119" parent="40" name="object_id">
       <Position>3</Position>
-      <DataType>text|0</DataType>
+      <DataType>text|0s</DataType>
       <StateNumber>1781</StateNumber>
     </column>
     <column id="120" parent="40" name="object_repr">
       <Position>4</Position>
-      <DataType>varchar(200)|0</DataType>
+      <DataType>varchar(200)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1781</StateNumber>
     </column>
     <column id="121" parent="40" name="action_flag">
       <Position>5</Position>
-      <DataType>smallint|0</DataType>
+      <DataType>smallint|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1781</StateNumber>
     </column>
     <column id="122" parent="40" name="change_message">
       <Position>6</Position>
-      <DataType>text|0</DataType>
+      <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1781</StateNumber>
     </column>
     <column id="123" parent="40" name="content_type_id">
       <Position>7</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <StateNumber>1781</StateNumber>
     </column>
     <column id="124" parent="40" name="user_id">
       <Position>8</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1781</StateNumber>
     </column>
@@ -782,7 +782,7 @@ permission_id</ColNames>
     </check>
     <column id="132" parent="41" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1777</StateNumber>
       <DefaultExpression>nextval(&apos;django_content_type_id_seq&apos;::regclass)</DefaultExpression>
@@ -790,13 +790,13 @@ permission_id</ColNames>
     </column>
     <column id="133" parent="41" name="app_label">
       <Position>3</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1777</StateNumber>
     </column>
     <column id="134" parent="41" name="model">
       <Position>4</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1777</StateNumber>
     </column>
@@ -825,7 +825,7 @@ model</ColNames>
     </key>
     <column id="139" parent="42" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1776</StateNumber>
       <DefaultExpression>nextval(&apos;django_migrations_id_seq&apos;::regclass)</DefaultExpression>
@@ -833,19 +833,19 @@ model</ColNames>
     </column>
     <column id="140" parent="42" name="app">
       <Position>2</Position>
-      <DataType>varchar(255)|0</DataType>
+      <DataType>varchar(255)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1776</StateNumber>
     </column>
     <column id="141" parent="42" name="name">
       <Position>3</Position>
-      <DataType>varchar(255)|0</DataType>
+      <DataType>varchar(255)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1776</StateNumber>
     </column>
     <column id="142" parent="42" name="applied">
       <Position>4</Position>
-      <DataType>timestamp with time zone|0</DataType>
+      <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1776</StateNumber>
     </column>
@@ -862,19 +862,19 @@ model</ColNames>
     </key>
     <column id="145" parent="43" name="session_key">
       <Position>1</Position>
-      <DataType>varchar(40)|0</DataType>
+      <DataType>varchar(40)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1799</StateNumber>
     </column>
     <column id="146" parent="43" name="session_data">
       <Position>2</Position>
-      <DataType>text|0</DataType>
+      <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1799</StateNumber>
     </column>
     <column id="147" parent="43" name="expire_date">
       <Position>3</Position>
-      <DataType>timestamp with time zone|0</DataType>
+      <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1799</StateNumber>
     </column>
@@ -899,7 +899,7 @@ model</ColNames>
     </key>
     <column id="152" parent="44" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
       <DefaultExpression>nextval(&apos;main_author_id_seq&apos;::regclass)</DefaultExpression>
@@ -907,12 +907,12 @@ model</ColNames>
     </column>
     <column id="153" parent="44" name="first_name">
       <Position>2</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="154" parent="44" name="last_name">
       <Position>3</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <StateNumber>1821</StateNumber>
     </column>
     <index id="155" parent="44" name="main_author_pkey">
@@ -928,7 +928,7 @@ model</ColNames>
     </key>
     <column id="157" parent="45" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
       <DefaultExpression>nextval(&apos;main_config_id_seq&apos;::regclass)</DefaultExpression>
@@ -936,7 +936,7 @@ model</ColNames>
     </column>
     <column id="158" parent="45" name="about">
       <Position>2</Position>
-      <DataType>text|0</DataType>
+      <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
@@ -953,18 +953,18 @@ model</ColNames>
     </key>
     <column id="161" parent="46" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>3674</StateNumber>
     </column>
     <column id="162" parent="46" name="isbn_10">
       <Position>2</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <StateNumber>3676</StateNumber>
     </column>
     <column id="163" parent="46" name="isbn_13">
       <Position>3</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <StateNumber>3677</StateNumber>
     </column>
     <index id="164" parent="46" name="main_isbn_id_pk">
@@ -980,7 +980,7 @@ model</ColNames>
     </key>
     <column id="166" parent="47" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
       <DefaultExpression>nextval(&apos;main_resource_id_seq&apos;::regclass)</DefaultExpression>
@@ -988,22 +988,22 @@ model</ColNames>
     </column>
     <column id="167" parent="47" name="name">
       <Position>2</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="168" parent="47" name="description">
       <Position>3</Position>
-      <DataType>text|0</DataType>
+      <DataType>text|0s</DataType>
       <StateNumber>1836</StateNumber>
     </column>
     <column id="169" parent="47" name="website_url">
       <Position>4</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <StateNumber>1836</StateNumber>
     </column>
     <column id="170" parent="47" name="download_url">
       <Position>5</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <StateNumber>1836</StateNumber>
     </column>
     <index id="171" parent="47" name="main_resource_pkey">
@@ -1033,7 +1033,7 @@ model</ColNames>
     </key>
     <column id="176" parent="48" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
       <DefaultExpression>nextval(&apos;main_source_id_seq&apos;::regclass)</DefaultExpression>
@@ -1041,31 +1041,31 @@ model</ColNames>
     </column>
     <column id="177" parent="48" name="name">
       <Position>2</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="178" parent="48" name="url">
       <Position>3</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="179" parent="48" name="free_downloads">
       <Position>4</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="180" parent="48" name="purchases">
       <Position>5</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="181" parent="48" name="information">
       <Position>7</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>3248</StateNumber>
     </column>
@@ -1110,7 +1110,7 @@ model</ColNames>
     </key>
     <column id="190" parent="49" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
       <DefaultExpression>nextval(&apos;main_work_id_seq&apos;::regclass)</DefaultExpression>
@@ -1118,28 +1118,28 @@ model</ColNames>
     </column>
     <column id="191" parent="49" name="title">
       <Position>2</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="192" parent="49" name="genre">
       <Position>3</Position>
-      <DataType>varchar(50)|0</DataType>
+      <DataType>varchar(50)|0s</DataType>
       <StateNumber>1865</StateNumber>
     </column>
     <column id="193" parent="49" name="description">
       <Position>4</Position>
-      <DataType>text|0</DataType>
+      <DataType>text|0s</DataType>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="194" parent="49" name="publication_date">
       <Position>5</Position>
-      <DataType>date|0</DataType>
+      <DataType>date|0s</DataType>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="195" parent="49" name="author_id">
       <Position>6</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
@@ -1183,7 +1183,7 @@ title</ColNames>
     </foreign-key>
     <column id="202" parent="50" name="id">
       <Position>1</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
       <DefaultExpression>nextval(&apos;main_booksource_id_seq&apos;::regclass)</DefaultExpression>
@@ -1191,40 +1191,40 @@ title</ColNames>
     </column>
     <column id="203" parent="50" name="epub_avail">
       <Position>2</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="204" parent="50" name="kindle_avail">
       <Position>3</Position>
-      <DataType>boolean|0</DataType>
+      <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="205" parent="50" name="price">
       <Position>4</Position>
-      <DataType>double precision|0</DataType>
+      <DataType>double precision|0s</DataType>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="206" parent="50" name="book_url">
       <Position>5</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <StateNumber>1836</StateNumber>
     </column>
     <column id="207" parent="50" name="download_url">
       <Position>6</Position>
-      <DataType>varchar(100)|0</DataType>
+      <DataType>varchar(100)|0s</DataType>
       <StateNumber>1836</StateNumber>
     </column>
     <column id="208" parent="50" name="source_id">
       <Position>7</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>
     <column id="209" parent="50" name="work_id">
       <Position>8</Position>
-      <DataType>integer|0</DataType>
+      <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>1821</StateNumber>
     </column>

@@ -65,6 +65,8 @@ class Work(models.Model):
     translator = models.ForeignKey(Author, blank=True, null=True, on_delete=models.CASCADE,
                                    related_name='translations')
 
+    language = models.CharField(max_length=30, blank=True, null=True)
+
     genre = models.CharField(
         max_length=50, null=True, blank=True,
         validators=[validate_comma_separated_integer_list],
@@ -112,7 +114,7 @@ class GutenbergWork(models.Model):
     # need additional restraints on duplicates, eg title/author unique.
     book_id = models.IntegerField(primary_key=True)
     title = models.CharField(max_length=150)
-    author_first = models.CharField(max_length=100)
+    author_first = models.CharField(max_length=100, null=True, blank=True)
     author_last = models.CharField(max_length=100)
     language = models.CharField(max_length=50, blank=True, null=True)
     illustrator = models.CharField(max_length=100, blank=True, null=True)
@@ -220,6 +222,13 @@ class Config(models.Model):
     about = models.TextField()  # ie text for the about page.
 
 
+class Report(models.Model):
+    datetime = models.DateTimeField()
+    title_query = models.CharField(max_length=200, blank=True, null=True)
+    author_query = models.CharField(max_length=200, blank=True, null=True)
+    works = models.ManyToManyField(Work, related_name='reports')
+
+
 def populate_initial_sources():
     Source.objects.update_or_create(
         name='Google',
@@ -290,6 +299,7 @@ def populate_initial_sources():
         }
     )
 
+
 def populate_initial_resources():
     Resource.objects.update_or_create(
         name="Calibre",
@@ -319,7 +329,6 @@ def populate_initial_resources():
         }
     )
 
-
     Resource.objects.update_or_create(
         name="Aldiko",
         defaults={
@@ -330,48 +339,8 @@ def populate_initial_resources():
     )
 
 
-def populate_initial_works():
-    sagan, _ = Author.objects.get_or_create(first_name="Carl", last_name="Sagan")
-    stephenson, _ = Author.objects.get_or_create(first_name="Neal",
-                                       last_name="Stephenson")
-    austen, _ = Author.objects.get_or_create(first_name="Jane", last_name="Austen")
-    homer, _ = Author.objects.get_or_create(first_name="Homer", last_name="")
-    dante, _ = Author.objects.get_or_create(first_name="Dante", last_name="Alighieri")
-    hemingway, _ = Author.objects.get_or_create(first_name="Ernest",
-                                      last_name="Hemingway")
-
-    Work.objects.update_or_create(title="Pale Blue Dot", author=sagan)
-    Work.objects.update_or_create(title="Contact", author=sagan)
-    Work.objects.update_or_create(title="Cosmos", author=sagan)
-
-    Work.objects.update_or_create(title="Seveneves", author=stephenson)
-    Work.objects.update_or_create(title="The Diamond Age",
-                                           author=stephenson)
-    Work.objects.update_or_create(title="Snow Crash",
-                                          author=stephenson)
-
-    Work.objects.update_or_create(title="Emma", author=austen)
-    Work.objects.update_or_create(title="Pride and Prejudice",
-                                     author=austen)
-    Work.objects.update_or_create(title="Sense and Sensibility",
-                                     author=austen)
-
-    Work.objects.update_or_create(title="The Illiad", author=homer)
-    Work.objects.update_or_create(title="The Odyssey", author=homer)
-
-    Work.objects.update_or_create(title="The Divine Comedy", author=dante)
-    Work.objects.update_or_create(title="Purgatory", author=dante)
-    Work.objects.update_or_create(title="Purgatorio", author=dante)
-    Work.objects.update_or_create(title="Inferno", author=dante)
-
-    Work.objects.update_or_create(title="The Sun Also Rises",
-                                   author=hemingway)
-    Work.objects.update_or_create(title="For Whom the Bell Tolls",
-                                    author=hemingway)
-    
-    
 def populate_initial() -> None:
     """Populate initial value from the other populators."""
     populate_initial_resources()
     populate_initial_sources()
-    populate_initial_works()
+    # populate_initial_works()

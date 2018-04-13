@@ -2,9 +2,25 @@ import requests
 
 from main.models import WorkSource
 
-test_isbn = 9780099469506  # todo temp
+# Documentation:
+# https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ProgrammingGuide.html
 
 BASE_URL = 'http://webservices.amazon.com/onca/xml?'
+
+
+def search_title_author(title: str, author: str):
+    payload = {
+        'Service': 'AWSECommerceService',
+        'Operation': 'ItemLookup',
+        'ResponseGroup': 'Large',
+        'SearchIndex': 'All',
+        'IdType': 'ISBN',
+        'ItemId': isbn,
+    }
+    return requests.get(BASE_URL, params=payload).text
+
+
+
 
 def search_isbn(isbn: str='9780099469506') -> WorkSource:
     payload = {

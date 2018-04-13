@@ -51,10 +51,13 @@ def download_index() -> None:
 
 def parse_entry(text: str) -> Optional[GbBook]:
     """This parser assumes the text is already split by \n\n."""
-    split_data_id_data = r'(.*?)\s{3,}(\d{1,5})\n?(.*)'
-    match = re.match(split_data_id_data, text)
+    split_data_id_data = r'(.*?)\s{3,}(\d{1,5})\n?(.*?)'
+    # Dotall, incase there are splits during the extras etc.
+    exp = re.compile(split_data_id_data, re.DOTALL)
+    match = re.match(exp, text)
     if not match:
         return
+    # todo currently extras are not present in part 2 :(
 
     part1, internal_id, part2 = match.groups()
     internal_id = int(internal_id)
@@ -65,6 +68,7 @@ def parse_entry(text: str) -> Optional[GbBook]:
     # todo foreign substitutions for 'by'
 
     split_title_author_extras = r'(.*?)\,\s+by\s+(.*?)\s*(\[.*\])?\s*(\[.*\])?\s*(\[.*\])?$'
+
     match2 = re.match(split_title_author_extras, trimmed)
     if not match2:
         return
@@ -126,8 +130,10 @@ def populate_from_index(filename: str='GUTINDEX.ALL') -> None:
         if not book:
             num_failed += 1
             continue
-        if len(book.title) > 150 or len(book.author_first) > 100 or len(
-                book.author_last) > 100:
+        if book.author_first:
+            if len(book.author_first) > 100:
+                continue
+        if len(book.title) > 150 or len(book.author_last) > 100:
             continue
 
         GutenbergWork.objects.update_or_create(

@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import registerServiceWorker from './registerServiceWorker'
 
 import {createStore, Store} from 'redux'
-import {Provider, connect} from 'react-redux'
+import {Provider, connect, Dispatch} from 'react-redux'
 
 import axios from "axios"
 
@@ -60,8 +60,8 @@ axios.get('http://localhost:8000/api/resources').then(
 )
 
 // Connext the redux store to React.
-const mapStateToProps = (state) => ({ state: state })
-const mapDispatchToProps = (dispatch) => ({ dispatch: dispatch })
+const mapStateToProps = (state: MainState) => ({ state: state })
+const mapDispatchToProps = (dispatch: Dispatch<any>) => ({ dispatch: dispatch })
 
 const Connected = connect(mapStateToProps, mapDispatchToProps)(Main)
 

@@ -7,4 +7,5 @@ urlpatterns = [
     path('resources', views.ResourceList.as_view()),
     # path('<int:pk>/', views.BookDetail.as_view()),
     path('search', views.search),
+    path('report', views.report),
 ]

@@ -34,11 +34,11 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
         this.handleChangeAuthor = this.handleChangeAuthor.bind(this)
     }
 
-    handleChangeTitle(event) {
+    handleChangeTitle(event: any) {
         this.setState({title: event.target.value})
     }
 
-    handleChangeAuthor(event) {
+    handleChangeAuthor(event: any) {
         this.setState({author: event.target.value})
     }
 
@@ -46,7 +46,8 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
         const dispatch = this.props.dispatch
         return (
             <Form inline={true} style={{textAlign: 'center'}}>
-                <h4>Search by title, author, or ISBN:</h4>
+                {/*<h4>Search by title, author, or ISBN:</h4>*/}
+                <h4>Search by title and/or author:</h4>
                 <FormGroup controlId="searchBox" >
                     {/*<ControlLabel>Search by title, author, or ISBN:</ControlLabel>*/}
                     <FormControl
@@ -70,7 +71,7 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                     <Button
                         type="submit"
                         bsStyle="primary"
-                        onClick={(e) => {
+                        onClick={(e: any) => {
                             e.preventDefault()
                             dispatch({
                                 type: 'setDisplaying',
@@ -136,7 +137,7 @@ const Book = ({book}: {book: Work}) => {
     const freeItems = freeSources.map(ws =>
         (
             <div key={ws.id}>
-                <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
+                <h4>{ws.source.name}</h4>
                 <p style={{textIndent: indent}}>
                     {ws.epub_url ? <a href={ws.epub_url}>Epub</a> : null}
                 </p>
@@ -155,7 +156,7 @@ const Book = ({book}: {book: Work}) => {
     const purchaseItems = purchaseSources.map(ws =>
         (
             <div key={ws.id}>
-                <h4><a href={ws.source.url}>{ws.source.name}</a></h4>
+                <h4>{ws.source.name}</h4>
                 <p style={{textIndent: indent}}>
                     {ws.purchase_url ? <a href={ws.purchase_url}>Buy for ${ws.price}</a> : null}
                 </p>
@@ -218,6 +219,7 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                       {books: Work[], dispatch: Function, loading: boolean, displayingResults: boolean}) => (
     <Col sm={12} style={{textAlign: 'center'}}>
         <h1 style={{margin: 'auto', marginBottom: 10}}>Find and download ebooks</h1>
+        <h3 style={{margin: 'auto', marginBottom: 10, color: '#d89d55'}}>Beta</h3>
 
         <Row style={{textAlign: 'center', marginBottom: 40}}>
             <Col md={8} mdOffset={2} style={{marginBottom: 30}}>
@@ -225,7 +227,11 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
             </Col>
 
             <Col xs={12} md={8} mdOffset={2}>
-                {loading ? <Spinner name='circle' color='blue' style={{margin: 'auto'}}/> : null}
+                {/* todo ts is complaining about Spinner having style :/ */}
+                {/*{loading ? (<Spinner name='circle' color='blue' style={{margin: 'auto'}}/> as any) : null}*/}
+                <div style={{margin: 'auto'}}>
+                    {loading ? <Spinner name='circle' color='blue'/> : null}
+                </div>
                 {/* Can't get ringloader to center. */}
                 {/*<RingLoader*/}
                 {/*color={'#123abc'}*/}
@@ -234,6 +240,24 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                 {!books.length && displayingResults ? <h4>No books found 🙁</h4> : null}
 
                 {books.map(b => <Book key={b.id} book={b}/>)}
+
+                {books.length && displayingResults ?
+                    <h4>Don't see what you're looking for? 😕
+                        <a
+                            style={{cursor: 'pointer'}}
+                            onClick={() => {
+                                // todo Probably should pass title/author searched for
+                                axios.post('http://localhost:8000/api/report', {books: books}).then(
+                                    (resp) => {
+                                        // todo instead, show the user a success message.
+                                        console.log("Successfully submitted")
+                                    }
+                                )
+                            }}
+                        > Report
+                        </a>
+                    </h4>
+                    : null}
             </Col>
         </Row>
     </Col>
@@ -308,7 +332,7 @@ export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) 
         />
     )
 
-    const findPage = (page) => {
+    const findPage = (page: string) => {
         switch(page) {
             case 'home':
                 return home

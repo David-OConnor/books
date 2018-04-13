@@ -24,11 +24,30 @@
   version "9.6.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.2.tgz#e49ac1adb458835e95ca6487bc20f916b37aff23"
 
+"@types/react-bootstrap@^0.32.7":
+  version "0.32.7"
+  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.7.tgz#b454a2eb055e7aa52106b26b15c93160b03b0501"
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-dom@^16.0.4":
   version "16.0.4"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.0.4.tgz#2e8fd45f5443780ed49bf2cdd9809e6091177a7d"
   dependencies:
     "@types/node" "*"
+    "@types/react" "*"
+
+"@types/react-redux@^5.0.15":
+  version "5.0.15"
+  resolved "https://registry.yarnpkg.com/@types/react-redux/-/react-redux-5.0.15.tgz#420af2c702ac7aab321cf45bb7d3cb2503dd24d5"
+  dependencies:
+    "@types/react" "*"
+    redux "^3.6.0"
+
+"@types/react-spinkit@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@types/react-spinkit/-/react-spinkit-3.0.3.tgz#48a1ee6a895090d70bdf111f46ec8f4d0ce59c8e"
+  dependencies:
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.3.5":
@@ -5927,7 +5946,7 @@ reduce-function-call@^1.0.1:
   dependencies:
     balanced-match "^0.4.2"
 
-redux@^3.7.2:
+redux@^3.6.0, redux@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/redux/-/redux-3.7.2.tgz#06b73123215901d25d065be342eb026bc1c8537b"
   dependencies:

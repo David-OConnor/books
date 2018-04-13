@@ -386,9 +386,30 @@ class ParsersTestCase(unittest.TestCase):
             editor=None
         )
 
+        hood_text = """Robin Hood, by Joseph Ritson                                             56926
+ [Subtitle: A collection of all the ancient poems, songs,
+  and ballads,now extant, relative to that celebrated
+  English outlaw, To which are prefixed historical
+  anecdotes of his life]
+ [Illustrators: Thomas Bewick, A. H. Tourrier and E. Buckman]"""
+        hood_expected = GbBook(
+            internal_id=56926,
+            title="Robin Hood",
+            author_first="Joseph",
+            author_last="Ritson",
+            language=None,
+            illustrator=None,
+            subtitle="""A collection of all the ancient poems, songs,
+  and ballads,now extant, relative to that celebrated
+  English outlaw, To which are prefixed historical
+  anecdotes of his life""",
+            editor=None
+        )
+
         self.assertEqual(victories_expected, gutenberg.parse_entry(victories_text))
         self.assertEqual(turngenev_expected, gutenberg.parse_entry(turngenev_text))
         self.assertEqual(rim_expected, gutenberg.parse_entry(rim_text))
+        self.assertEqual(hood_expected, gutenberg.parse_entry(hood_text))
 
     def test_gutenberg_index_parser_advanced(self):
         hol_text = '''In het Hol van den Leeuw, door J. Fabius                                 56561

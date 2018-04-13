@@ -69,7 +69,8 @@ def parse_link(text: str, href: str) -> Optional[ABook]:
         return
 
     title = title.replace("’", "'")
-    author_first = author_first.replace("’", "'")
+    if author_first:
+        author_first = author_first.replace("’", "'")
     author_last = author_last.replace("’", "'")
 
     return ABook(

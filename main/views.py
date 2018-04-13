@@ -1,3 +1,5 @@
+from io import BytesIO
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User, Group
@@ -5,6 +7,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import viewsets, generics, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.parsers import JSONParser
 
 from .models import Work, Resource
 from .serializers import WorkSerializer, UserSerializer, GroupSerializer, \
@@ -55,3 +58,18 @@ def search(request):
 
     results = db.search_or_update(title, author)
     return Response(WorkSerializer(results, many=True).data)
+
+
+@api_view(['POST'])
+def report(request):
+
+    s = WorkSerializer(data=request.data['books'])
+    s.is_valid()
+    print(s.validated_data)
+
+    stream = BytesIO(request.data['books'])
+    data = JSONParser().parse(stream)
+    serializer = WorkSerializer(data=data)
+    serializer.is_valid()
+    works = serializer.validated_data
+    print(works)

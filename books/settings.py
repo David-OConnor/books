@@ -137,10 +137,12 @@ USE_TZ = True
 
 # https://github.com/kennethreitz/dj-static
 STATIC_ROOT = 'staticfiles'
+# STATIC_URL = '/frontend/build/static/'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    # os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'frontend/build/static'),
 )
 
 

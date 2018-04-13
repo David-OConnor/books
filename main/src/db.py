@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 from . import goodreads
 from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
     GutenbergWork
-from . import google, adelaide, kobo
+from . import google, adelaide, gutenberg, kobo
 
 
 # Try to keep database modifications from APIs in this file.
@@ -21,6 +21,58 @@ def update_db_from_gutenberg() -> None:
 def update_all_worksources() -> None:
     for work in Work.objects.all():
         update_worksources(work)
+
+
+def _work_from_adelaide(a_work: AdelaideWork) -> None:
+    """Update the database with a Work, from an Adelaide work."""
+    if len(a_work.title) > 100 or len(a_work.author_last) > 50:
+        return
+    if a_work.author_first and len(a_work.author_first) > 50:
+        return
+    author, _ = Author.objects.get_or_create(
+        first_name=a_work.author_first,
+        last_name=a_work.author_last
+    )
+
+    work, _ = Work.objects.update_or_create(
+        title=a_work.title,
+        author=author,
+        defaults={
+            'translator': a_work.translator
+        }
+    )
+
+    update_worksources(work)
+
+
+def _work_from_gutenberg(gb_work: GutenbergWork) -> None:
+    """Update the database with a Work, from an Adelaide work."""
+    # todo dry with adelaide
+    if len(gb_work.title) > 100 or len(gb_work.author_last) > 50:
+        return
+    if gb_work.author_first and len(gb_work.author_first) > 50:
+        return
+    author, _ = Author.objects.get_or_create(
+        first_name=gb_work.author_first,
+        last_name=gb_work.author_last
+    )
+
+    work, _ = Work.objects.update_or_create(
+        title=gb_work.title,
+        author=author,
+        defaults={
+            'language': gb_work.language
+        }
+    )
+    update_worksources(work)
+
+
+def works_from_adelaide_gutenberg() -> None:
+    for awork in AdelaideWork.objects.all():
+        _work_from_adelaide(awork)
+
+    for gwork in GutenbergWork.objects.all():
+        _work_from_gutenberg(gwork)
 
 
 def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
@@ -66,46 +118,46 @@ def update_worksources(work: Work) -> None:
     must already exist in the database."""
 
     update_sources_adelaide_gutenberg(work, True)
-    # update_sources_adelaide_gutenberg(work, False)
-    #
-    # # for goodreads_id in goodreads.search(work):
-    # goodreads_id = goodreads.search(work)
-    # if goodreads_id:
-    #     WorkSource.objects.update_or_create(
-    #         work=work,
-    #         source=Source.objects.get(name='GoodReads'),
-    #         defaults={
-    #             'internal_id': goodreads_id,
-    #             'book_url': goodreads.url_from_id(goodreads_id)
-    #         }
-    #     )
+    update_sources_adelaide_gutenberg(work, False)
 
-    # # Update from kobo
-    # kobo_data = kobo.scrape(work)
-    # if kobo_data:
-    #     kobo_url, kobo_price = kobo_data
-    #     if kobo_price:
-    #         if kobo_price == 'free':
-    #             purchase_url = None
-    #             epub_url = kobo_url
-    #             kobo_price = None
-    #         else:
-    #             purchase_url = kobo_url
-    #             epub_url = None
-    #             kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
-    #     else:
-    #         epub_url = None
-    #         purchase_url = kobo_url
-    #
-    #     WorkSource.objects.update_or_create(
-    #         work=work,
-    #         source=Source.objects.get(name='Kobo'),
-    #         defaults={
-    #             'purchase_url': purchase_url,
-    #             'epub_url': epub_url,
-    #             'price': kobo_price
-    #         }
-    #     )
+    # for goodreads_id in goodreads.search(work):
+    goodreads_id = goodreads.search(work)
+    if goodreads_id:
+        WorkSource.objects.update_or_create(
+            work=work,
+            source=Source.objects.get(name='GoodReads'),
+            defaults={
+                'internal_id': goodreads_id,
+                'book_url': goodreads.url_from_id(goodreads_id)
+            }
+        )
+
+    # Update from kobo
+    kobo_data = kobo.scrape(work)
+    if kobo_data:
+        kobo_url, kobo_price = kobo_data
+        if kobo_price:
+            if kobo_price == 'free':
+                purchase_url = None
+                epub_url = kobo_url
+                kobo_price = None
+            else:
+                purchase_url = kobo_url
+                epub_url = None
+                kobo_price = float(kobo_price[1:])  # todo removes dollar sign. Janky/inflexible
+        else:
+            epub_url = None
+            purchase_url = kobo_url
+
+        WorkSource.objects.update_or_create(
+            work=work,
+            source=Source.objects.get(name='Kobo'),
+            defaults={
+                'purchase_url': purchase_url,
+                'epub_url': epub_url,
+                'price': kobo_price
+            }
+        )
 
 
 def search_local(title: str, author: str) -> List[Work]:
@@ -200,24 +252,19 @@ def purge_chaff():
             work.delete()
 
 
-def search_or_update(title: str, author: str) -> List[Work]:
-    """Try to find the work locally; if unable, Add the work to the database
-       based on searching with the Google Api."""
-    results = search_local(title, author)
-    # If we found a local result, return it. If not, query the API.
-    if results:
-        return results
-
+def update(title: str, author: str) -> None:
+    """Add or update works to the database from a title/author search."""
     internet_results = google.search_title_author(title, author)
     if not internet_results:
-        return []
-    new_results = []
+        return
+
     for book in internet_results:
 
         # todo just top author for now.
         author_first, author_last = book.authors[0]
 
-        author, _ = Author.objects.get_or_create(first_name=author_first, last_name=author_last)
+        author, _ = Author.objects.get_or_create(first_name=author_first,
+                                                 last_name=author_last)
 
         if filter_chaff(book.title, author.full_name()):
             continue
@@ -231,7 +278,7 @@ def search_or_update(title: str, author: str) -> List[Work]:
             author=author,
             defaults={
                 'genre': [],  # todo fix this
-                'description':  book.description,
+                'description': book.description,
                 # 'publication_date': book.publication_date
             }
         )
@@ -262,5 +309,24 @@ def search_or_update(title: str, author: str) -> List[Work]:
 
         update_worksources(new_work)
 
-        new_results.append(new_work)
-    return new_results
+
+def search_or_update(title: str, author: str) -> List[Work]:
+    """Try to find the work locally; if unable, Add the work to the database
+       based on searching with the Google Api."""
+    results = search_local(title, author)
+    # If we found a local result, return it. If not, query the API.
+    if results:
+        return results
+    else:
+        update(title, author)
+        results = search_local(title, author)
+        return results if results else []
+
+
+def setup() -> None:
+    """This is the main workflow for setting up the initial works"""
+    # Populate Adelaide and Gutenberg works
+    adelaide.crawl()
+    gutenberg.download_index()
+    gutenberg.populate_from_index()
+
