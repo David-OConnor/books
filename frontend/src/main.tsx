@@ -123,9 +123,9 @@ const Book = ({book}: {book: Work}) => {
     const infoItems = infoSources.map(ws =>
         (
             <div key={ws.id}>
-                <h4><a href={ws.book_url}>{ws.source.name}</a></h4>
+                <h5><a href={ws.book_url}>{ws.source.name}</a></h5>
                 {/*<p style={{textIndent: indent}}>*/}
-                    {/*{ws.book_url ? <a href={ws.book_url}>Info</a> : null}*/}
+                {/*{ws.book_url ? <a href={ws.book_url}>Info</a> : null}*/}
                 {/*</p>*/}
             </div>
         )
@@ -137,7 +137,7 @@ const Book = ({book}: {book: Work}) => {
     const freeItems = freeSources.map(ws =>
         (
             <div key={ws.id}>
-                <h4>{ws.source.name}</h4>
+                <h5>{ws.source.name}</h5>
                 <p style={{textIndent: indent}}>
                     {ws.epub_url ? <a href={ws.epub_url}>Epub</a> : null}
                 </p>
@@ -156,7 +156,7 @@ const Book = ({book}: {book: Work}) => {
     const purchaseItems = purchaseSources.map(ws =>
         (
             <div key={ws.id}>
-                <h4>{ws.source.name}</h4>
+                <h5>{ws.source.name}</h5>
                 <p style={{textIndent: indent}}>
                     {ws.purchase_url ? <a href={ws.purchase_url}>Buy for ${ws.price}</a> : null}
                 </p>
@@ -242,7 +242,7 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                 {books.map(b => <Book key={b.id} book={b}/>)}
 
                 {books.length && displayingResults ?
-                    <h4>Don't see what you're looking for? 😕
+                    <h5 style={{marginTop: 60}}>Don't see what you're looking for? 😕
                         <a
                             style={{cursor: 'pointer'}}
                             onClick={() => {
@@ -256,7 +256,7 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                             }}
                         > Report
                         </a>
-                    </h4>
+                    </h5>
                     : null}
             </Col>
         </Row>
@@ -283,27 +283,138 @@ const ResourcesPage = ({resources}: {resources: Resource[]}) => (
     </Col>
 )
 
+interface ContactProps {
+}
+
+interface ContactState {
+    name: string
+    email: string
+    body: string
+    submitted: boolean
+}
+
+class ContactForm extends React.Component<ContactProps, ContactState> {
+    constructor(props: ContactProps) {
+        super(props);
+        this.state = {
+            name: '',
+            email: '',
+            body: '',
+            submitted: false
+        }
+
+        this.handleChangeName = this.handleChangeName.bind(this)
+        this.handleChangeEmail = this.handleChangeEmail.bind(this)
+        this.handleChangeBody = this.handleChangeBody.bind(this)
+        this.handleSubmit = this.handleSubmit.bind(this)
+    }
+
+    handleChangeName(event: any) {
+        this.setState({name: event.target.value})
+    }
+
+    handleChangeEmail(event: any) {
+        this.setState({email: event.target.value})
+    }
+
+    handleChangeBody(event: any) {
+        this.setState({body: event.target.value})
+    }
+
+    handleSubmit() {
+        this.setState({
+            submitted: true,
+            name: '',
+            email: '',
+            body: '',
+        })
+    }
+
+    render() {
+        return (
+            <FormGroup controlId="searchBox" style={{marginTop: 60, marginBottom: 60}} >
+                <h4>Send us feedback:</h4>
+                    <FormControl
+                        type="text"
+                        value={this.state.name}
+                        label="Your name"
+                        placeholder="name"
+                        onChange={this.handleChangeName}
+                    />
+                    <FormControl.Feedback />
+
+                    <FormControl
+                        type="email"
+                        value={this.state.email}
+                        label="Email address"
+                        placeholder="email"
+                        onChange={this.handleChangeEmail}
+                    />
+                    <FormControl.Feedback />
+
+                    <FormControl
+                        componentClass="textarea"
+                        value={this.state.body}
+                        label="Message"
+                        placeholder="Your message"
+                        onChange={this.handleChangeBody}
+                    />
+                    <FormControl.Feedback />
+
+                <Button
+                    type="submit"
+                    bsStyle="primary"
+                    onClick={(e: any) => {
+                        e.preventDefault()
+                        axios.post(
+                            'http://localhost:8000/api/contact',
+                            {
+                                name: this.state.name,
+                                email: this.state.email,
+                                body: this.state.body
+                            }
+                        ).then((resp) => this.handleSubmit())
+                    }}
+                >
+                    Submit
+                </Button>
+
+                {this.state.submitted ? <h3>Message submitted</h3> : null}
+            </FormGroup>
+        )
+    }
+}
+
 // todo: Make about page text a database entry.
 const AboutPage = () => (
     <Col xs={12} md={8} mdOffset={2}>
         <h2>What's the point?</h2>
-        <p>Many older books are available free online due to their copyright
-            expiring. This site makes it easy to find them in epub, Kindle, and PDF
-            format.
+        <p>
+            Many older books are in the public domain, meaning legal copies are avilable online.
+            This site lets you search for books, and shows if free ebooks are available.
+            It'll also show you where to buy them, eg for modern books.
 
-            An important part is to show only what you search for: Ie only the cleanest
-            Version, with no extraneous results.
+            We maintain a curated list of books, with a focus on original works, ie
+            not derivative editions or spinoffs.
 
-            If not available for free, it shows popular websites where you can
-            buy them.</p>
+            We're just getting started; if you have suggestions or critique, please
+            use the form below.
+        </p>
+
+        <ContactForm/>
 
         <p>
             Special thanks to:
+            <ul>
+                <li>
+                    Project Gutenberg and The University of Adelaide, for their excellent
+                    curated libraries of free ebooks.
+                </li>
 
-            -Project Gutenberg, for its excellent library of
-            free books, and for providing tools to search their database.
-
-            -Google, for their Books search tools.
+                <li>
+                    Google, for their Books search tools.
+                </li>
+            </ul>
         </p>
     </Col>
 )

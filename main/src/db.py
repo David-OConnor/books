@@ -20,7 +20,13 @@ def update_db_from_gutenberg() -> None:
 
 def update_all_worksources() -> None:
     for work in Work.objects.all():
-        update_worksources(work)
+        update_worksources(
+            work,
+            adelaide_source=Source.objects.get(name='University of Adelaide'),
+            gutenberg_source=Source.objects.get(name='Project Gutenberg'),
+            google_source=Source.objects.get(name='Google'),
+            kobo_source=Source.objects.get(name='Kobo')
+        )
 
 
 def _work_from_adelaide(a_work: AdelaideWork) -> None:
@@ -42,8 +48,6 @@ def _work_from_adelaide(a_work: AdelaideWork) -> None:
         }
     )
 
-    update_worksources(work)
-
 
 def _work_from_gutenberg(gb_work: GutenbergWork) -> None:
     """Update the database with a Work, from an Adelaide work."""
@@ -64,28 +68,35 @@ def _work_from_gutenberg(gb_work: GutenbergWork) -> None:
             'language': gb_work.language
         }
     )
-    update_worksources(work)
 
 
-def works_from_adelaide_gutenberg() -> None:
+def create_works_from_adelaide_gutenberg() -> None:
+    """Populate works from Adelaide and Gutenberg; mostly for initial setup.
+    Note that this can take quite a long time."""
     for awork in AdelaideWork.objects.all():
         _work_from_adelaide(awork)
 
     for gwork in GutenbergWork.objects.all():
         _work_from_gutenberg(gwork)
 
+    # The above code is local, and still slow; the below requires multiple API calls.
+    for work in Work.objects.all():
+        update_worksources(work)
 
-def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
+
+def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool, source=None) -> None:
     """Update worksources from the University of Adelaide or Project Gutenberg,
        using their info cached in our DB."""
     # adelaide is True if pulling from adelaide; false if from Gutenberg.
     # todo dry from search_local:
     if adelaide_:
         model = AdelaideWork
-        source = Source.objects.get(name='University of Adelaide')
+        if not source:
+            source = Source.objects.get(name='University of Adelaide')
     else:
         model = GutenbergWork
-        source = Source.objects.get(name='Project Gutenberg')
+        if not source:
+            source = Source.objects.get(name='Project Gutenberg')
 
     title_matches = model.objects.filter(title__search=work.title)
 
@@ -113,12 +124,18 @@ def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool) -> None:
     )
 
 
-def update_worksources(work: Work) -> None:
+def update_worksources(work: Work, skip_google=False, adelaide_source=None,
+                       gutenberg_source=None, google_source=None, kobo_source=None) -> None:
     """Update a single Work's source info by pulling data from each API. The work
     must already exist in the database."""
+    # Skip google if we just queried their API; prevents redundant calls.
+    if not adelaide_source:
+        adelaide_source = Source.objects.get(name='University of Adelaide')
+    if not gutenberg_source:
+        gutenberg_source = Source.objects.get(name='Project Gutenberg')
 
-    update_sources_adelaide_gutenberg(work, True)
-    update_sources_adelaide_gutenberg(work, False)
+    update_sources_adelaide_gutenberg(work, True, source=adelaide_source)
+    update_sources_adelaide_gutenberg(work, False, source=gutenberg_source)
 
     # for goodreads_id in goodreads.search(work):
     goodreads_id = goodreads.search(work)
@@ -151,13 +168,33 @@ def update_worksources(work: Work) -> None:
 
         WorkSource.objects.update_or_create(
             work=work,
-            source=Source.objects.get(name='Kobo'),
+            source=kobo_source if kobo_source else Source.objects.get(name='Kobo'),
             defaults={
                 'purchase_url': purchase_url,
                 'epub_url': epub_url,
                 'price': kobo_price
             }
         )
+
+        # todo split into multiple funs
+        # Update from Google.
+        if skip_google:
+            return
+        google_data = google.search_title_author(work.title, work.author.full_name())
+        if not google_data:
+            return
+        for gbook in google_data:
+            WorkSource.objects.update_or_create(
+                source=google_source if google_source else Source.objects.get(name='Google'),
+                work=work,
+                defaults={
+                    'book_url': gbook.book_url,
+                    'epub_url': gbook.epub_url,
+                    'pdf_url': gbook.pdf_url,
+                    'purchase_url': gbook.purchase_url,
+                    'price': gbook.price
+                }
+            )
 
 
 def search_local(title: str, author: str) -> List[Work]:
@@ -252,6 +289,18 @@ def purge_chaff():
             work.delete()
 
 
+def clean_titles() -> None:
+    """Remove surrounding quotes, and other anomolies from titles."""
+    for work in Work.objects.all():
+        if work.title[0] == "'" and work.title[-1] == "'":
+            work.title = work.title[1:-1]
+            work.save()
+        if work.title[0] == '"' and work.title[-1] == '"':
+            work.title = work.title[1:-1]
+            work.save()
+
+
+
 def update(title: str, author: str) -> None:
     """Add or update works to the database from a title/author search."""
     internet_results = google.search_title_author(title, author)
@@ -307,7 +356,7 @@ def update(title: str, author: str) -> None:
             }
         )
 
-        update_worksources(new_work)
+        update_worksources(new_work, skip_google=True)
 
 
 def search_or_update(title: str, author: str) -> List[Work]:
@@ -330,3 +379,9 @@ def setup() -> None:
     gutenberg.download_index()
     gutenberg.populate_from_index()
 
+    # Add Works from these to the database, then add the worksources.
+    create_works_from_adelaide_gutenberg()
+    clean_titles()
+
+
+    update_all_worksources()

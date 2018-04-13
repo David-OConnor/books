@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 
-from .models import Work, Resource
+from .models import Work, Resource, ContactMessage
 from .serializers import WorkSerializer, UserSerializer, GroupSerializer, \
     ResourceSerializer
 from .src import db
@@ -73,3 +73,18 @@ def report(request):
     serializer.is_valid()
     works = serializer.validated_data
     print(works)
+
+    return Response()
+
+
+@api_view(['POST'])
+def contact(request):
+    """Handle submitting the contact form."""
+
+    ContactMessage.objects.create(
+        name=request.data['name'],
+        email=request.data['email'],
+        body=request.data['body']
+    )
+
+    return Response()

@@ -229,6 +229,12 @@ class Report(models.Model):
     works = models.ManyToManyField(Work, related_name='reports')
 
 
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    body = models.TextField()
+
+
 def populate_initial_sources():
     Source.objects.update_or_create(
         name='Google',
@@ -304,9 +310,31 @@ def populate_initial_resources():
     Resource.objects.update_or_create(
         name="Calibre",
         defaults={
-            'description': "Popular book viewer and editor with lots of options.",
+            'description': "Full-featured, popular book viewer and editor. Can "
+                           "edit books, and convert between formats",
             'website_url': "https://calibre-ebook.com/",
             'download_url': "https://calibre-ebook.com/download"
+        }
+
+    )
+
+    Resource.objects.update_or_create(
+        name="Adobe Digital Editions",
+        defaults={
+            'description': "Epub viewer and catalog system, with support for "
+                           "the EPUB 3 standard. Available for Windows, Mac, iOS and Android",
+            'website_url': "https://www.adobe.com/solutions/ebook/digital-editions.html",
+            'download_url': "https://www.adobe.com/solutions/ebook/digital-editions/download.html"
+        }
+
+    )
+
+    Resource.objects.update_or_create(
+        name="Freeda",
+        defaults={
+            'description': "Epub viewer, as a Windows Store app",
+            'website_url': "http://www.turnipsoft.co.uk/",
+            'download_url': "https://www.microsoft.com/en-us/store/p/freda/9wzdncrfj43b?ocid=badge&rtc=1"
         }
 
     )

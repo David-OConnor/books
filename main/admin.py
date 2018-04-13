@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 
 from .models import Work, Author, Isbn, Resource, Source, WorkSource, \
-    AdelaideWork, GutenbergWork
+    AdelaideWork, GutenbergWork, Report, ContactMessage
 
 
 @register(Work)
@@ -50,3 +50,14 @@ class SourceAdmin(ModelAdmin):
 class WorkSourceAdmin(ModelAdmin):
     list_display = ('work', 'source', 'price')
     search_fields = ('work__title', 'work__author__last_name', 'source__name')
+
+
+# @register(Report)
+# class SourceAdmin(ModelAdmin):
+#     list_display = ('works',)
+#
+
+@register(ContactMessage)
+class SourceAdmin(ModelAdmin):
+    list_display = ('name', 'email')
+    search_fields = ('name', 'email', 'body')
