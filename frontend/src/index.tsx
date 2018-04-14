@@ -7,7 +7,7 @@ import {Provider, connect, Dispatch} from 'react-redux'
 
 import axios from "axios"
 
-import Main from './main'
+import {Main, BASE_URL} from './main'
 // import * as main from './main'
 import {MainState} from "./interfaces";
 
@@ -49,9 +49,9 @@ const mainReducer = (state: MainState=initialState, action: any) => {
 }
 
 let store: Store<any> = createStore(mainReducer)
-
+console.log(BASE_URL + 'resources')
 // Populate resources.
-axios.get('http://localhost:8000/api/resources').then(
+axios.get(BASE_URL + 'resources').then(
     (resp) =>
         store.dispatch({
             type: 'replaceResources',

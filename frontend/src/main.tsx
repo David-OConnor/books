@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import {Button, Grid, Row, Col,
-    Form, FormGroup, FormControl,ButtonGroup} from 'react-bootstrap'
+    Form, FormGroup, FormControl, ButtonGroup} from 'react-bootstrap'
 
 // import * as _ from 'lodash'
 import {Work, MainState, Resource} from "./interfaces"
@@ -9,6 +9,15 @@ import axios from "axios"
 
 import * as Spinner from "react-spinkit"
 // import { RingLoader } from 'react-spinners';
+
+const HOSTNAME = window && window.location && window.location.hostname
+console.log("HOSTNAME:", HOSTNAME)
+let ON_HEROKU = false
+if (HOSTNAME === 'readseek.herokuapp.com' || HOSTNAME === 'readseek.org') {
+    ON_HEROKU = true
+}
+
+export const BASE_URL = ON_HEROKU ? 'https://readseek.herokuapp.com/api/' : 'http://localhost:8000/api/'
 
 interface SearchProps {
     dispatch: Function
@@ -88,7 +97,8 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                             })
 
                             axios.post(
-                                'http://localhost:8000/api/search',
+                                BASE_URL + 'search',
+                                // 'api/search',
                                 {title: this.state.title, author: this.state.author}
                             ).then(
                                 (resp) => {
@@ -247,7 +257,7 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                             style={{cursor: 'pointer'}}
                             onClick={() => {
                                 // todo Probably should pass title/author searched for
-                                axios.post('http://localhost:8000/api/report', {books: books}).then(
+                                axios.post(BASE_URL + 'report', {books: books}).then(
                                     (resp) => {
                                         // todo instead, show the user a success message.
                                         console.log("Successfully submitted")
@@ -367,7 +377,7 @@ class ContactForm extends React.Component<ContactProps, ContactState> {
                     onClick={(e: any) => {
                         e.preventDefault()
                         axios.post(
-                            'http://localhost:8000/api/contact',
+                            BASE_URL + 'contact',
                             {
                                 name: this.state.name,
                                 email: this.state.email,
