@@ -33,6 +33,7 @@ else:
     DEBUG = True
     SECRET_KEY = '#k-b7j1ucvc2#w)lrmw0^pq@2v^n#%4x7^%8vkyu@r4e4+0ngv'
 
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'readseek.org', 'readseek.herokapp.com',
                  'www.readseek.org']
