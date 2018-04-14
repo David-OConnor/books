@@ -20,5 +20,11 @@
   },
   "scripts": {
     "postinstall": "npm install --prefix frontend"
+  },
+    "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "@types/node": "^9.6.2",
+    "@types/react-dom": "^16.0.4",
+    "typescript": "^2.8.1"
   }
 }
