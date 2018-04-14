@@ -22,7 +22,6 @@ class BookList(generics.ListCreateAPIView):
 class ResourceList(generics.ListCreateAPIView):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
-    permission_classes = (permissions.IsAdminUser,)
 
 
 @api_view(['POST'])
@@ -35,7 +34,6 @@ def search(request):
 
 @api_view(['POST'])
 def report(request):
-
     s = WorkSerializer(data=request.data['books'])
     s.is_valid()
     print(s.validated_data)

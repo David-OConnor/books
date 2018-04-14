@@ -1,5 +1,0 @@
-{
-  "main/tests.py::SearchTestCase": true,
-  "main/tests.py::SearchTestCase::test_search_exact_title_author": true,
-  "main/tests.py::TestCase": true
-}

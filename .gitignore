@@ -14,7 +14,7 @@ workspace.xml
 node_modules/
 */auth.py
 */private.py
-*/GUTINDEX.ALL
+GUTINDEX.ALL
 
 
 # Front end
