@@ -33,9 +33,8 @@ else:
     DEBUG = True
     SECRET_KEY = '#k-b7j1ucvc2#w)lrmw0^pq@2v^n#%4x7^%8vkyu@r4e4+0ngv'
 
-DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'readseek.org', 'readseek.herokapp.com',
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'readseek.org', 'readseek.herokuapp.com',
                  'www.readseek.org']
 
 
@@ -85,7 +84,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # Is this required?
-        'DIRS': [os.path.join(BASE_DIR, "templates"), ],
+        'DIRS': [os.path.join(BASE_DIR, 'frontend/build'), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -154,7 +153,7 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'frontend/build/static'),
     # os.path.join(BASE_DIR, 'frontend/build/static'),
 )
 
