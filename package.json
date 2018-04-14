@@ -1,7 +1,24 @@
 {
   "name": "books",
   "version": "0.1.0",
-   "scripts": {
+  "engines": {
+    "node": "9.11.1"
+  },
+  "dependencies": {
+    "@types/react-bootstrap": "^0.32.7",
+    "@types/react-redux": "^5.0.15",
+    "@types/react-spinkit": "^3.0.3",
+    "axios": "^0.18.0",
+    "lodash": "^4.17.5",
+    "react": "^16.3.1",
+    "react-bootstrap": "^0.32.1",
+    "react-dom": "^16.3.1",
+    "react-redux": "^5.0.7",
+    "react-scripts-ts": "2.14.0",
+    "react-spinkit": "^3.0.0",
+    "redux": "^3.7.2"
+  },
+  "scripts": {
     "postinstall": "npm install --prefix frontend"
   }
 }
