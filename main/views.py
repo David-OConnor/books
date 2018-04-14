@@ -31,6 +31,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
+# todo Make sure these are blocked from normal users!
 class BookList(generics.ListCreateAPIView):
     queryset = Work.objects.all()
     serializer_class = WorkSerializer

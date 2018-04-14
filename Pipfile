@@ -1,17 +1,12 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [requires]
-
 python_version = "3.6"
 
-
 [packages]
-
 django = "*"
 djangorestframework = "*"
 dj-database-url = "*"
@@ -19,7 +14,6 @@ dj-database-url = "*"
 ipython = "*"
 django-cors-headers = "*"
 pytest = "*"
-django-webpack-loader = "*"
 requests = "*"
 saturn = "*"
 rdflib = "*"
@@ -27,7 +21,6 @@ untangle = "*"
 requests-html = "*"
 pymarc = "*"
 dj-static = "*"
-
+gunicorn = "*"
 
 [dev-packages]
-

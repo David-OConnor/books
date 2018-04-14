@@ -107,7 +107,7 @@ LOCAL_DB = 'postgres://david:test@localhost:5432/books'
 DATABASES = {'default': dj_database_url.config(default=LOCAL_DB)}
 
 # For connecting to Heroku's database from a local machine:
-# from private import HEROKU_DB_URL
+# from .private import HEROKU_DB_URL
 # DATABASES = {'default': dj_database_url.config(default=HEROKU_DB_URL)}
 
 
