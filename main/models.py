@@ -60,7 +60,8 @@ class Work(models.Model):
 
     # todo make authors a manytomany.
     author = models.ForeignKey(Author, related_name='works', on_delete=models.CASCADE)
-    additional_authors = models.ManyToManyField(Author, related_name='works_as_additional')
+    additional_authors = models.ManyToManyField(Author, related_name='works_as_additional',
+                                                blank=True)
 
     translator = models.ForeignKey(Author, blank=True, null=True, on_delete=models.CASCADE,
                                    related_name='translations')
@@ -226,10 +227,11 @@ class Report(models.Model):
     datetime = models.DateTimeField()
     title_query = models.CharField(max_length=200, blank=True, null=True)
     author_query = models.CharField(max_length=200, blank=True, null=True)
-    works = models.ManyToManyField(Work, related_name='reports')
+    # works = models.ManyToManyField(Work, related_name='reports')
 
 
 class ContactMessage(models.Model):
+    datetime = models.DateTimeField()
     name = models.CharField(max_length=100)
     email = models.EmailField()
     body = models.TextField()

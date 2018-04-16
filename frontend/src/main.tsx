@@ -13,7 +13,7 @@ import * as Spinner from "react-spinkit"
 const HOSTNAME = window && window.location && window.location.hostname
 console.log("HOSTNAME:", HOSTNAME)
 let ON_HEROKU = false
-if (HOSTNAME === 'readseek.herokuapp.com' || HOSTNAME === 'readseek.org') {
+if (HOSTNAME === 'readseek.herokuapp.com' || HOSTNAME === 'www.readseek.org') {
     ON_HEROKU = true
 }
 
@@ -30,7 +30,6 @@ interface SearchState {
 }
 
 class SearchForm extends React.Component<SearchProps, SearchState> {
-    // todo make this one search field instead of separate title and author.
     constructor(props: SearchProps) {
         super(props);
         this.state = {
@@ -96,6 +95,11 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                                 books: []
                             })
 
+                            dispatch({
+                                type: 'setReportSubmitted',
+                                on: false
+                            })
+
                             axios.post(
                                 BASE_URL + 'search',
                                 // 'api/search',
@@ -114,7 +118,13 @@ class SearchForm extends React.Component<SearchProps, SearchState> {
                                     dispatch({
                                         type: 'replaceBooks',
                                         books: resp.data
-                                    })}
+                                    })
+                                    dispatch({
+                                        type: 'setSearched',
+                                        title: this.state.title,
+                                        author: this.state.author
+                                    })
+                                }
                             )}}
                     >Search
                     </Button>
@@ -225,8 +235,18 @@ const Book = ({book}: {book: Work}) => {
     )
 }
 
-const HomePage = ({books, dispatch, loading, displayingResults}:
-                      {books: Work[], dispatch: Function, loading: boolean, displayingResults: boolean}) => (
+const HomePage = ({books, dispatch, loading, displayingResults, searchedTitle,
+                      searchedAuthor, reportSubmitted}:
+                      {
+                          books: Work[],
+                          dispatch: Function,
+                          loading: boolean,
+                          displayingResults: boolean,
+                          searchedTitle: string,
+                          searchedAuthor: string,
+                          reportSubmitted: boolean
+                      }) => (
+
     <Col sm={12} style={{textAlign: 'center'}}>
         <h1 style={{margin: 'auto', marginBottom: 10}}>Find and download ebooks</h1>
         <h3 style={{margin: 'auto', marginBottom: 10, color: '#d89d55'}}>Beta</h3>
@@ -257,10 +277,16 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                             style={{cursor: 'pointer'}}
                             onClick={() => {
                                 // todo Probably should pass title/author searched for
-                                axios.post(BASE_URL + 'report', {books: books}).then(
+                                axios.post(BASE_URL + 'report', {
+                                    title: searchedTitle,
+                                    author: searchedAuthor
+                                }).then(
                                     (resp) => {
                                         // todo instead, show the user a success message.
-                                        console.log("Successfully submitted")
+                                        dispatch({
+                                            type: 'setReportSubmitted',
+                                            on: true
+                                        })
                                     }
                                 )
                             }}
@@ -268,6 +294,9 @@ const HomePage = ({books, dispatch, loading, displayingResults}:
                         </a>
                     </h5>
                     : null}
+
+                {reportSubmitted ? <h4 style={{color: 'green'}}>Report submitted</h4> : null}
+
             </Col>
         </Row>
     </Col>
@@ -342,55 +371,59 @@ class ContactForm extends React.Component<ContactProps, ContactState> {
 
     render() {
         return (
-            <FormGroup controlId="searchBox" style={{marginTop: 60, marginBottom: 60}} >
-                <h4>Send us feedback:</h4>
-                    <FormControl
-                        type="text"
-                        value={this.state.name}
-                        label="Your name"
-                        placeholder="name"
-                        onChange={this.handleChangeName}
-                    />
-                    <FormControl.Feedback />
+            <Row>
+                <Col xs={12} md={8} mdOffset={2}>
+                    <FormGroup controlId="searchBox" style={{marginTop: 60, marginBottom: 60}} >
+                        <h4>Send us feedback:</h4>
+                        <FormControl
+                            type="text"
+                            value={this.state.name}
+                            label="Your name"
+                            placeholder="name"
+                            onChange={this.handleChangeName}
+                        />
+                        <FormControl.Feedback />
 
-                    <FormControl
-                        type="email"
-                        value={this.state.email}
-                        label="Email address"
-                        placeholder="email"
-                        onChange={this.handleChangeEmail}
-                    />
-                    <FormControl.Feedback />
+                        <FormControl
+                            type="email"
+                            value={this.state.email}
+                            label="Email address"
+                            placeholder="email"
+                            onChange={this.handleChangeEmail}
+                        />
+                        <FormControl.Feedback />
 
-                    <FormControl
-                        componentClass="textarea"
-                        value={this.state.body}
-                        label="Message"
-                        placeholder="Your message"
-                        onChange={this.handleChangeBody}
-                    />
-                    <FormControl.Feedback />
+                        <FormControl
+                            componentClass="textarea"
+                            value={this.state.body}
+                            label="Message"
+                            placeholder="Your message"
+                            onChange={this.handleChangeBody}
+                        />
+                        <FormControl.Feedback />
 
-                <Button
-                    type="submit"
-                    bsStyle="primary"
-                    onClick={(e: any) => {
-                        e.preventDefault()
-                        axios.post(
-                            BASE_URL + 'contact',
-                            {
-                                name: this.state.name,
-                                email: this.state.email,
-                                body: this.state.body
-                            }
-                        ).then((resp) => this.handleSubmit())
-                    }}
-                >
-                    Submit
-                </Button>
+                        <Button
+                            type="submit"
+                            bsStyle="primary"
+                            onClick={(e: any) => {
+                                e.preventDefault()
+                                axios.post(
+                                    BASE_URL + 'contact',
+                                    {
+                                        name: this.state.name,
+                                        email: this.state.email,
+                                        body: this.state.body
+                                    }
+                                ).then((resp) => this.handleSubmit())
+                            }}
+                        >
+                            Submit
+                        </Button>
 
-                {this.state.submitted ? <h3>Thanks for the feedback! 🙂</h3> : null}
-            </FormGroup>
+                        {this.state.submitted ? <h3>Thanks for the feedback! 🙂</h3> : null}
+                    </FormGroup>
+                </Col>
+            </Row>
         )
     }
 }
@@ -424,7 +457,7 @@ const AboutPage = () => (
             </li>
 
             <li>
-                Google, for their Books search tools.
+                Google, for their search tools.
             </li>
         </ul>
     </Col>
@@ -451,6 +484,9 @@ export const Main = ({state, dispatch}: {state: MainState, dispatch: Function}) 
             dispatch={dispatch}
             loading={state.loading}
             displayingResults={state.displayingResults}
+            searchedTitle={state.searchedTitle}
+            searchedAuthor={state.searchedAuthor}
+            reportSubmitted={state.reportSubmitted}
         />
     )
 

@@ -49,4 +49,7 @@ export interface MainState {
     resources: Resource[]
     loading: boolean
     displayingResults: boolean
+    reportSubmitted: boolean
+    searchedTitle: string
+    searchedAuthor: string
 }

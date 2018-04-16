@@ -52,12 +52,13 @@ class WorkSourceAdmin(ModelAdmin):
     search_fields = ('work__title', 'work__author__last_name', 'source__name')
 
 
-# @register(Report)
-# class SourceAdmin(ModelAdmin):
-#     list_display = ('works',)
-#
+@register(Report)
+class ReportAdmin(ModelAdmin):
+    list_display = ('title_query', 'author_query', 'datetime')
+    search_fields = ('title_query', 'author_query', 'datetime')
+
 
 @register(ContactMessage)
-class SourceAdmin(ModelAdmin):
+class ContactAdmin(ModelAdmin):
     list_display = ('name', 'email')
     search_fields = ('name', 'email', 'body')

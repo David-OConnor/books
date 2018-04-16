@@ -19,6 +19,11 @@ const initialState: MainState = {
     resources: [],
     loading: false,
     displayingResults: false,
+    reportSubmitted: false,
+    // SearchedTitle and Author are for passing reports; the main search field
+    // data is stored in the SearchForm state.
+    searchedTitle: '',
+    searchedAuthor: '',
 }
 
 const mainReducer = (state: MainState=initialState, action: any) => {
@@ -37,11 +42,21 @@ const mainReducer = (state: MainState=initialState, action: any) => {
         case 'replaceResources':
             return {...state, resources: action.resources}
 
+        // todo combine boolean reducers?
         case 'setLoading':
             return {...state, loading: action.on}
 
         case 'setDisplaying':
             return {...state, displayingResults: action.on}
+
+        case 'setReportSubmitted':
+            return {...state, reportSubmitted: action.on}
+
+        case 'setBool':
+            return {...state, [action.item]: action.on}
+
+        case 'setSearched':
+            return {...state, searchedTitle: action.title, searchedAuthor: action.author}
 
         default:
             return state
@@ -49,7 +64,7 @@ const mainReducer = (state: MainState=initialState, action: any) => {
 }
 
 let store: Store<any> = createStore(mainReducer)
-console.log(BASE_URL + 'resources')
+
 // Populate resources.
 axios.get(BASE_URL + 'resources').then(
     (resp) =>

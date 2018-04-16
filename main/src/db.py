@@ -197,6 +197,13 @@ def update_worksources(work: Work, skip_google=False, adelaide_source=None,
             )
 
 
+def update_all_google_info() -> None:
+    """Update information from Google for all works. Super slow, since it
+    makes a call to Google for each work in the DB."""
+    for work in Work.objects.all():
+        update(work.title, work.author.full_name())
+
+
 def search_local(title: str, author: str) -> List[Work]:
     """Use Postgres's search feature to query the databse based on title and author."""
     # Prioritize author last name over first.
@@ -256,6 +263,8 @@ def filter_chaff(title: str, author: str) -> bool:
         'print edition',
         'analysis',
         'summary',
+        'S/Wx',
+        'sampler'
     ]
 
     AUTHOR_CHAFF = [
@@ -300,7 +309,6 @@ def clean_titles() -> None:
             work.save()
 
 
-
 def update(title: str, author: str) -> None:
     """Add or update works to the database from a title/author search."""
     internet_results = google.search_title_author(title, author)
@@ -308,7 +316,6 @@ def update(title: str, author: str) -> None:
         return
 
     for book in internet_results:
-
         # todo just top author for now.
         author_first, author_last = book.authors[0]
 
@@ -322,12 +329,13 @@ def update(title: str, author: str) -> None:
             continue
 
         # Add the new work to the database.
-        new_work, _ = Work.objects.get_or_create(
+        new_work, _ = Work.objects.update_or_create(
             title=book.title,
             author=author,
             defaults={
-                'genre': [],  # todo fix this
+                'genre': '',  # todo fix this
                 'description': book.description,
+                'language': book.language,
                 # 'publication_date': book.publication_date
             }
         )
@@ -382,6 +390,5 @@ def setup() -> None:
     # Add Works from these to the database, then add the worksources.
     create_works_from_adelaide_gutenberg()
     clean_titles()
-
 
     update_all_worksources()

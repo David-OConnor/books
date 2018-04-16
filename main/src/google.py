@@ -120,7 +120,7 @@ def _process_results(items: List[dict]) -> Iterator[GBook]:
 
             internal_id=book['id'],
 
-            language=volume.get('language'),
+            language=volume.get('language').lower(),
             description=volume.get('description'),
             publication_date=pub_date,
             publisher=volume.get('publisher'),
