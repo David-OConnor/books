@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/history": "^4.6.2",
     "@types/react-bootstrap": "^0.32.7",
     "@types/react-redux": "^5.0.15",
     "@types/react-spinkit": "^3.0.3",
+    "@types/redux-first-router": "^1.10.2",
     "axios": "^0.18.0",
+    "history": "^4.7.2",
     "lodash": "^4.17.5",
     "react": "^16.3.1",
     "react-bootstrap": "^0.32.1",
@@ -14,7 +17,9 @@
     "react-redux": "^5.0.7",
     "react-scripts-ts": "2.14.0",
     "react-spinkit": "^3.0.0",
-    "redux": "^3.7.2"
+    "redux": "^3.7.2",
+    "redux-first-router": "^0.0.16-next",
+    "redux-first-router-link": "^1.4.2"
   },
   "scripts": {
     "start": "react-scripts-ts start",

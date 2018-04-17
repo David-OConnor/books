@@ -202,6 +202,7 @@ def update_all_google_info() -> None:
     makes a call to Google for each work in the DB."""
     for work in Work.objects.all():
         update(work.title, work.author.full_name())
+        print(f"Updated Google Work and Source for {work.title}")
 
 
 def search_local(title: str, author: str) -> List[Work]:
@@ -264,7 +265,10 @@ def filter_chaff(title: str, author: str) -> bool:
         'analysis',
         'summary',
         'S/Wx',
-        'sampler'
+        'sampler',
+
+        # Misspellings here
+        'monte christo'
     ]
 
     AUTHOR_CHAFF = [

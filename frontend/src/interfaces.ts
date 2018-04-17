@@ -52,4 +52,5 @@ export interface MainState {
     reportSubmitted: boolean
     searchedTitle: string
     searchedAuthor: string
+    displayLanguage: string  // eg en, es, any etc.
 }
