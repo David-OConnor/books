@@ -6,15 +6,17 @@ from django.db.models import QuerySet
 from . import goodreads
 from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
     GutenbergWork
-from . import google, adelaide, gutenberg, kobo
+from . import google, adelaide, gutenberg, kobo, openlibrary, librarything
 
 
 # Try to keep database modifications from APIs in this file.
 
 
 def update_db_from_gutenberg() -> None:
-    """Add and edit books and authors in the database using Gutenberg's catalog,
-    stored locally."""
+    """
+    Add and edit books and authors in the database using Gutenberg's catalog,
+    stored locally.
+    """
     pass
 
 
@@ -25,7 +27,9 @@ def update_all_worksources() -> None:
             adelaide_source=Source.objects.get(name='University of Adelaide'),
             gutenberg_source=Source.objects.get(name='Project Gutenberg'),
             google_source=Source.objects.get(name='Google'),
-            kobo_source=Source.objects.get(name='Kobo')
+            kobo_source=Source.objects.get(name='Kobo'),
+            goodreads_source=Source.objects.get(name='GoodReads'),
+            openlibrary_source=Source.objects.get(name='OpenLibrary'),
         )
 
 
@@ -71,8 +75,10 @@ def _work_from_gutenberg(gb_work: GutenbergWork) -> None:
 
 
 def create_works_from_adelaide_gutenberg() -> None:
-    """Populate works from Adelaide and Gutenberg; mostly for initial setup.
-    Note that this can take quite a long time."""
+    """
+    Populate works from Adelaide and Gutenberg; mostly for initial setup.
+    Note that this can take quite a long time.
+    """
     for awork in AdelaideWork.objects.all():
         _work_from_adelaide(awork)
 
@@ -85,8 +91,10 @@ def create_works_from_adelaide_gutenberg() -> None:
 
 
 def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool, source=None) -> None:
-    """Update worksources from the University of Adelaide or Project Gutenberg,
-       using their info cached in our DB."""
+    """
+    Update worksources from the University of Adelaide or Project Gutenberg,
+       using their info cached in our DB.
+       """
     # adelaide is True if pulling from adelaide; false if from Gutenberg.
     # todo dry from search_local:
     if adelaide_:
@@ -119,37 +127,30 @@ def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool, source=None) 
         defaults={
             'epub_url': best.url,
             'kindle_url': best.url,
-            'internal_id': best.book_id if not adelaide else None
+            'internal_id_str': str(best.book_id) if not adelaide else None
         }
     )
 
 
-def update_worksources(work: Work, skip_google=False, adelaide_source=None,
-                       gutenberg_source=None, google_source=None, kobo_source=None) -> None:
-    """Update a single Work's source info by pulling data from each API. The work
-    must already exist in the database."""
-    # Skip google if we just queried their API; prevents redundant calls.
-    if not adelaide_source:
-        adelaide_source = Source.objects.get(name='University of Adelaide')
-    if not gutenberg_source:
-        gutenberg_source = Source.objects.get(name='Project Gutenberg')
-
-    update_sources_adelaide_gutenberg(work, True, source=adelaide_source)
-    update_sources_adelaide_gutenberg(work, False, source=gutenberg_source)
-
-    # for goodreads_id in goodreads.search(work):
-    goodreads_id = goodreads.search(work)
-    if goodreads_id:
+def update_google_ws(work: Work, source: Source) -> None:
+    google_data = google.search_title_author(work.title, work.author.full_name())
+    if not google_data:
+        return
+    for gbook in google_data:
         WorkSource.objects.update_or_create(
+            source=source if source else Source.objects.get(name='Google'),
             work=work,
-            source=Source.objects.get(name='GoodReads'),
             defaults={
-                'internal_id': goodreads_id,
-                'book_url': goodreads.url_from_id(goodreads_id)
+                'book_url': gbook.book_url,
+                'epub_url': gbook.epub_url,
+                'pdf_url': gbook.pdf_url,
+                'purchase_url': gbook.purchase_url,
+                'price': gbook.price
             }
         )
 
-    # Update from kobo
+
+def update_kobo_ws(work: Work, source: Source) -> None:
     kobo_data = kobo.scrape(work)
     if kobo_data:
         kobo_url, kobo_price = kobo_data
@@ -168,7 +169,7 @@ def update_worksources(work: Work, skip_google=False, adelaide_source=None,
 
         WorkSource.objects.update_or_create(
             work=work,
-            source=kobo_source if kobo_source else Source.objects.get(name='Kobo'),
+            source=source if source else Source.objects.get(name='Kobo'),
             defaults={
                 'purchase_url': purchase_url,
                 'epub_url': epub_url,
@@ -176,25 +177,110 @@ def update_worksources(work: Work, skip_google=False, adelaide_source=None,
             }
         )
 
-        # todo split into multiple funs
-        # Update from Google.
-        if skip_google:
-            return
-        google_data = google.search_title_author(work.title, work.author.full_name())
-        if not google_data:
-            return
-        for gbook in google_data:
+
+def update_goodreads_ws(work: Work, source: Source) -> None:
+    goodreads_id = goodreads.search(work)
+    if goodreads_id:
+        WorkSource.objects.update_or_create(
+            work=work,
+            source=source if source else Source.objects.get(name='GoodReads'),
+            defaults={
+                'internal_id_str': str(goodreads_id),
+                'book_url': goodreads.url_from_id(goodreads_id)
+            }
+        )
+
+
+def update_openlibrary_ws(work: Work, source: Source) -> None:
+    """
+    Update the OL worksource, as well as goodreads and librarything
+    worksources, and add additional ISBNs.
+    """
+
+    books = openlibrary.search(work)
+    # todo by proxy, update librarything and goodreads WSs here since we have
+    # todo their ids from openlibrary!
+    for book in books:
+        # todo for now, if multiple items exist for things like ids etc,
+        # todo just pick the first.
+        # Update the OpenLibrary worksource.
+        WorkSource.objects.update_or_create(
+            work=work,
+            source=source if source else Source.objects.get(name='OpenLibrary'),
+            defaults={
+                'internal_id_str': book.internal_id,
+                'book_url': openlibrary.url_from_id(book.internal_id)
+            }
+        )
+
+        # Add ISBNs.
+        for isbn in book.isbns:
+            continue # todo Isbn.new() doesn't work for update_or_create style.
+            # print(book.publication_date, "PD\n\n\n")
+            # Isbn.objects.update_or_create(
+            #     isbn=isbn,
+            #     defaults={
+            #         'work': work,
+            #         'language': book.languages[0],  # todo first
+            #         # todo figure out how to parse these first.
+            #         # 'publication_date': book.publication_date,
+            #     }
+            # )
+
+        # Update Goodreads and Librarything WorkSources.
+        # todo cache sources?
+        for gr_id in book.goodreads_ids:
             WorkSource.objects.update_or_create(
-                source=google_source if google_source else Source.objects.get(name='Google'),
                 work=work,
+                source=Source.objects.get(name='GoodReads'),
                 defaults={
-                    'book_url': gbook.book_url,
-                    'epub_url': gbook.epub_url,
-                    'pdf_url': gbook.pdf_url,
-                    'purchase_url': gbook.purchase_url,
-                    'price': gbook.price
+                    'internal_id_str': str(gr_id),
+                    'book_url': goodreads.url_from_id(gr_id)
                 }
             )
+
+        for lt_id in book.librarything_ids:
+            WorkSource.objects.update_or_create(
+                work=work,
+                source=Source.objects.get(name='LibraryThing'),
+                defaults={
+                    'internal_id_str': str(lt_id),
+                    'book_url': librarything.url_from_id(lt_id)
+                }
+            )
+
+
+def update_worksources(work: Work, skip_google=False, adelaide_source=None,
+                       gutenberg_source=None,
+                       google_source=None,
+                       kobo_source=None,
+                       goodreads_source=None,
+                       openlibrary_source=None) -> None:
+    """
+    Update a single Work's source info by pulling data from each API. The work
+    must already exist in the database.
+    """
+
+    # Update workssources for Adelaide and Gutenberg by referncing their database entries.
+    if not adelaide_source:
+        adelaide_source = Source.objects.get(name='University of Adelaide')
+    if not gutenberg_source:
+        gutenberg_source = Source.objects.get(name='Project Gutenberg')
+
+    update_sources_adelaide_gutenberg(work, True, source=adelaide_source)
+    update_sources_adelaide_gutenberg(work, False, source=gutenberg_source)
+
+    update_openlibrary_ws(work, source=openlibrary_source)
+
+    update_goodreads_ws(work, source=goodreads_source)
+
+    # Update from kobo, by calling their API.
+    update_kobo_ws(work, source=kobo_source)
+
+    # Update from Google, by calling their API.
+    # Skip google if we just queried their API; prevents redundant calls.
+    if not skip_google:
+        update_google_ws(work, source=google_source)
 
 
 def update_all_google_info() -> None:
@@ -292,8 +378,10 @@ def filter_chaff(title: str, author: str) -> bool:
 
 
 def purge_chaff():
-    """Remove all work that fit our chaff criteria; useful for removing works
-    that fit chaff criteria added after they were."""
+    """
+    Remove all work that fit our chaff criteria; useful for removing works
+    that fit chaff criteria added after they were.
+    """
     for author in Author.objects.all():
         if filter_chaff('any_text_not_in_filters', author.full_name()):
             author.delete()

@@ -189,6 +189,8 @@ class WorkSource(models.Model):
     # Some sources, like goodreads, assign each book (or edition) a unique id,
     # used internally.
     internal_id = models.IntegerField(blank=True, null=True)
+    # todo internal_id needs to bea  str!
+    internal_id_str = models.CharField(max_length=30, blank=True, null=True)
 
     # Pair with a currency field.
     price = models.FloatField(blank=True, null=True)
@@ -304,6 +306,15 @@ def populate_initial_sources():
         defaults={
             'url': 'https://www.librarything.com/',
             'information': True
+        }
+    )
+
+    Source.objects.update_or_create(
+        name='OpenLibrary',
+        defaults={
+            'url': 'https://openlibrary.org/',
+            'information': True,
+            # 'free_downloads': True
         }
     )
 

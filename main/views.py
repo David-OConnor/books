@@ -35,16 +35,6 @@ def search(request):
 
 @api_view(['POST'])
 def report(request):
-    # s = WorkSerializer(data=request.data['books'])
-    # s.is_valid()
-    # print(s.validated_data)
-    #
-    # stream = BytesIO(request.data['books'])
-    # data = JSONParser().parse(stream)
-    # serializer = WorkSerializer(data=data)
-    # serializer.is_valid()
-    # works = serializer.validated_data
-    # print(works)
     Report.objects.create(
         datetime=saturn.now(),
         title_query=request.data['title'],

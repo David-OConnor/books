@@ -11,9 +11,11 @@ BASE_URL = 'https://ebooks.adelaide.edu.au/meta/titles/'
 
 
 class ABook(NamedTuple):
-    # Information stored in an Abook (And for similar tuples in API files) encloses
-    # The information the source contains; we may not use all of it in the db, or may
-    # wish for more.
+    """
+    Information stored in an Abook (And for similar tuples in API files) encloses
+    The information the source contains; we may not use all of it in the db, or may
+    wish for more.
+    """
     title: str
     author_first: Optional[str]
     author_last: str
@@ -84,8 +86,10 @@ def parse_link(text: str, href: str) -> Optional[ABook]:
 
 
 def crawl() -> None:
-    """Pull all information from Adelaide's site, by crawling each of its 26
-    alphbetical title listings.  Save to the database."""
+    """
+    Pull all information from Adelaide's site, by crawling each of its 26
+    alphbetical title listings.  Save to the database.
+    """
     session = HTMLSession()
 
     for letter in ascii_uppercase:

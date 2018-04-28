@@ -7,6 +7,9 @@ from requests_html import HTMLSession
 from ..models import Work
 from .auth import LIBRARYTHING_KEY as KEY
 
+# todo given this isn't working out, and we can pull its unique id from
+# todo openlibrary, let's just use that.
+
 # API ref: https://www.librarything.com/services/
 
 #
@@ -30,8 +33,10 @@ from .auth import LIBRARYTHING_KEY as KEY
 # todo Just like with goodreads, we could pull more data, but for now,
 # just find the internal id, so we can link to it.
 def scrape(work: Work) -> Optional[int]:
-    """Search using .ck.getwork isn't working for name searches;
-    crawl the page instead."""
+    """
+    Search using .ck.getwork isn't working for name searches;
+    crawl the page instead.
+    """
     payload = {
         'search': work.title,
         'searchtype': 101,  # 101 is for books.
@@ -44,10 +49,13 @@ def scrape(work: Work) -> Optional[int]:
     # todo parsing isn't working... JS magic preventing it?
     work_div = r.html.find('.works', first=True)
 
+
 def search(work: Work) -> Optional[int]:
-    """Find a book by Title. Libarything's api isn't very flexible.
+    """
+    Find a book by Title. Libarything's api isn't very flexible.
     http: // www.librarything.com / services / rest / documentation / 1.1 /
-    librarything.ck.getwork.php"""
+    librarything.ck.getwork.php
+    """
 
     # todo DRY between this and goodreads
 
@@ -72,4 +80,4 @@ def search(work: Work) -> Optional[int]:
 
 def url_from_id(internal_id: int) -> str:
     """Find the goodreads URL associated with a book from its id."""
-    return f"http://www.librarything.com/work/1060/{internal_id}"
+    return f"http://www.librarything.com/work/{internal_id}"
