@@ -1,12 +1,14 @@
 from typing import List, Iterator, Optional
 
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db import IntegrityError
 from django.db.models import QuerySet
 
 from . import goodreads
 from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
     GutenbergWork
-from . import google, adelaide, gutenberg, kobo, openlibrary, librarything
+from . import google, adelaide, gutenberg, kobo, openlibrary, librarything, util
+
 
 
 # Try to keep database modifications from APIs in this file.
@@ -29,6 +31,7 @@ def update_all_worksources() -> None:
             google_source=Source.objects.get(name='Google'),
             kobo_source=Source.objects.get(name='Kobo'),
             goodreads_source=Source.objects.get(name='GoodReads'),
+            librarything_source=Source.objects.get(name='LibraryThing'),
             openlibrary_source=Source.objects.get(name='OpenLibrary'),
         )
 
@@ -85,9 +88,26 @@ def create_works_from_adelaide_gutenberg() -> None:
     for gwork in GutenbergWork.objects.all():
         _work_from_gutenberg(gwork)
 
+    adelaide_source = Source.objects.get(name='University of Adelaide')
+    gutenberg_source = Source.objects.get(name='Project Gutenberg')
+    google_source = Source.objects.get(name='Google')
+    kobo_source = Source.objects.get(name='GoodReads')
+    goodreads_source = Source.objects.get(name='GoodReads')
+    librarything_source = Source.objects.get(name='LibraryThing')
+    openlibrary_source = Source.objects.get(name='OpenLibrary')
+
     # The above code is local, and still slow; the below requires multiple API calls.
     for work in Work.objects.all():
-        update_worksources(work)
+        update_worksources(
+            work,
+            adelaide_source=adelaide_source,
+            gutenberg_source=gutenberg_source,
+            google_source=google_source,
+            kobo_source=kobo_source,
+            goodreads_source=goodreads_source,
+            librarything_source=librarything_source,
+            openlibrary_source=openlibrary_source
+        )
 
 
 def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool, source=None) -> None:
@@ -138,7 +158,7 @@ def update_google_ws(work: Work, source: Source) -> None:
         return
     for gbook in google_data:
         WorkSource.objects.update_or_create(
-            source=source if source else Source.objects.get(name='Google'),
+            source=source,
             work=work,
             defaults={
                 'book_url': gbook.book_url,
@@ -169,7 +189,7 @@ def update_kobo_ws(work: Work, source: Source) -> None:
 
         WorkSource.objects.update_or_create(
             work=work,
-            source=source if source else Source.objects.get(name='Kobo'),
+            source=source,
             defaults={
                 'purchase_url': purchase_url,
                 'epub_url': epub_url,
@@ -183,7 +203,7 @@ def update_goodreads_ws(work: Work, source: Source) -> None:
     if goodreads_id:
         WorkSource.objects.update_or_create(
             work=work,
-            source=source if source else Source.objects.get(name='GoodReads'),
+            source=source,
             defaults={
                 'internal_id_str': str(goodreads_id),
                 'book_url': goodreads.url_from_id(goodreads_id)
@@ -191,71 +211,75 @@ def update_goodreads_ws(work: Work, source: Source) -> None:
         )
 
 
-def update_openlibrary_ws(work: Work, source: Source) -> None:
+def update_openlibrary_ws(
+        work: Work,
+        source: Source,
+        gr_source: Source,
+        lt_source: Source,
+        books=None,
+) -> None:
     """
     Update the OL worksource, as well as goodreads and librarything
-    worksources, and add additional ISBNs.
+    worksources, and add additional ISBNs.  Books may already be provided,
+    preventing the need for a serach, if we just populated the initial work.
     """
 
-    books = openlibrary.search(work)
+    books2 = books if books else openlibrary.search(work.title, work.author.full_name())
     # todo by proxy, update librarything and goodreads WSs here since we have
     # todo their ids from openlibrary!
-    for book in books:
-        # todo for now, if multiple items exist for things like ids etc,
-        # todo just pick the first.
-        # Update the OpenLibrary worksource.
+    # for book in books:
+
+    # todo for now, go with the top OL result.
+    try:
+        book = next(books2)
+    except StopIteration:
+        return
+
+    # todo for now, if multiple items exist for things like ids etc,
+    # todo just pick the first.
+    # Update the OpenLibrary worksource.
+    WorkSource.objects.update_or_create(
+        work=work,
+        source=source,
+        defaults={
+            'internal_id_str': book.internal_id,
+            'book_url': openlibrary.url_from_id(book.internal_id)
+        }
+    )
+
+    # Update Goodreads and Librarything WorkSources.
+    for gr_id in book.goodreads_ids:
         WorkSource.objects.update_or_create(
             work=work,
-            source=source if source else Source.objects.get(name='OpenLibrary'),
+            source=gr_source,
             defaults={
-                'internal_id_str': book.internal_id,
-                'book_url': openlibrary.url_from_id(book.internal_id)
+                'internal_id_str': str(gr_id),
+                'book_url': goodreads.url_from_id(gr_id)
             }
         )
 
-        # Add ISBNs.
-        for isbn in book.isbns:
-            continue # todo Isbn.new() doesn't work for update_or_create style.
-            # print(book.publication_date, "PD\n\n\n")
-            # Isbn.objects.update_or_create(
-            #     isbn=isbn,
-            #     defaults={
-            #         'work': work,
-            #         'language': book.languages[0],  # todo first
-            #         # todo figure out how to parse these first.
-            #         # 'publication_date': book.publication_date,
-            #     }
-            # )
-
-        # Update Goodreads and Librarything WorkSources.
-        # todo cache sources?
-        for gr_id in book.goodreads_ids:
-            WorkSource.objects.update_or_create(
-                work=work,
-                source=Source.objects.get(name='GoodReads'),
-                defaults={
-                    'internal_id_str': str(gr_id),
-                    'book_url': goodreads.url_from_id(gr_id)
-                }
-            )
-
-        for lt_id in book.librarything_ids:
-            WorkSource.objects.update_or_create(
-                work=work,
-                source=Source.objects.get(name='LibraryThing'),
-                defaults={
-                    'internal_id_str': str(lt_id),
-                    'book_url': librarything.url_from_id(lt_id)
-                }
-            )
+    for lt_id in book.librarything_ids:
+        WorkSource.objects.update_or_create(
+            work=work,
+            source=lt_source,
+            defaults={
+                'internal_id_str': str(lt_id),
+                'book_url': librarything.url_from_id(lt_id)
+            }
+        )
 
 
-def update_worksources(work: Work, skip_google=False, adelaide_source=None,
-                       gutenberg_source=None,
-                       google_source=None,
-                       kobo_source=None,
-                       goodreads_source=None,
-                       openlibrary_source=None) -> None:
+def update_worksources(
+        work: Work,
+        adelaide_source: Source,
+        gutenberg_source: Source,
+        google_source: Source,
+        kobo_source: Source,
+        goodreads_source: Source,
+        librarything_source: Source,
+        openlibrary_source: Source,
+        skip_ol=False,
+) -> None:
     """
     Update a single Work's source info by pulling data from each API. The work
     must already exist in the database.
@@ -270,25 +294,21 @@ def update_worksources(work: Work, skip_google=False, adelaide_source=None,
     update_sources_adelaide_gutenberg(work, True, source=adelaide_source)
     update_sources_adelaide_gutenberg(work, False, source=gutenberg_source)
 
-    update_openlibrary_ws(work, source=openlibrary_source)
+    # We skip searching OpenLibrary here if we just created the work from there.
+    if not skip_ol:
+        update_openlibrary_ws(
+            work,
+            source=openlibrary_source,
+            gr_source=goodreads_source,
+            lt_source=librarything_source,
+        )
 
-    update_goodreads_ws(work, source=goodreads_source)
+    # We don't need to call goodreads or librarything; we have their info from
+    # Openlibrary.
+    # update_goodreads_ws(work, source=goodreads_source)
 
-    # Update from kobo, by calling their API.
     update_kobo_ws(work, source=kobo_source)
-
-    # Update from Google, by calling their API.
-    # Skip google if we just queried their API; prevents redundant calls.
-    if not skip_google:
-        update_google_ws(work, source=google_source)
-
-
-def update_all_google_info() -> None:
-    """Update information from Google for all works. Super slow, since it
-    makes a call to Google for each work in the DB."""
-    for work in Work.objects.all():
-        update(work.title, work.author.full_name())
-        print(f"Updated Google Work and Source for {work.title}")
+    update_google_ws(work, source=google_source)
 
 
 def search_local(title: str, author: str) -> List[Work]:
@@ -403,13 +423,13 @@ def clean_titles() -> None:
 
 def update(title: str, author: str) -> None:
     """Add or update works to the database from a title/author search."""
-    internet_results = google.search_title_author(title, author)
+    internet_results = openlibrary.search(title, author)
     if not internet_results:
         return
 
     for book in internet_results:
         # todo just top author for now.
-        author_first, author_last = book.authors[0]
+        author_first, author_last = util.split_author(book.author)
 
         author, _ = Author.objects.get_or_create(first_name=author_first,
                                                  last_name=author_last)
@@ -426,37 +446,52 @@ def update(title: str, author: str) -> None:
             author=author,
             defaults={
                 'genre': '',  # todo fix this
-                'description': book.description,
-                'language': book.language,
+                # 'description': book.description,
+                'language': book.languages[0] if len(book.languages) else None,
                 # 'publication_date': book.publication_date
             }
         )
 
         for isbn in book.isbns:
             # Add the new ISBN to the database.
-            Isbn.objects.update_or_create(
-                isbn=isbn,
-                defaults={
-                    'work': new_work,
-                    'publication_date': book.publication_date,
-                    'language': book.language
-                }
-            )
+            if len(isbn) not in [10, 13] or isbn[0] == '0':
+                continue
+            try:
+                isbn = int(isbn)
+            except ValueError:
+                continue
 
-        # Update the Google work source here, since we already queried them.
-        WorkSource.objects.update_or_create(
-            source=Source.objects.get(name='Google'),
-            work=new_work,
-            defaults={
-                'book_url': book.book_url,
-                'epub_url': book.epub_url,
-                'pdf_url': book.pdf_url,
-                'purchase_url': book.purchase_url,
-                'price': book.price
-            }
+            # todo skip publication date and language, for now.
+            isbn = Isbn.new(isbn, new_work)
+            try:
+                isbn.save()
+            except IntegrityError:
+                continue
+
+        # Cache these here to prevent extra queries.
+        librarything_source = Source.objects.get(name='LibraryThing')
+        goodreads_source = Source.objects.get(name='GoodReads')
+        openlibrary_source = Source.objects.get(name='OpenLibrary')
+
+        # Update the OpenLibrary work source here, since we already queried them.
+        update_openlibrary_ws(
+            new_work,
+            source=openlibrary_source,
+            gr_source=goodreads_source,
+            lt_source=librarything_source,
         )
 
-        update_worksources(new_work, skip_google=True)
+        update_worksources(
+            new_work,
+            adelaide_source=Source.objects.get(name='University of Adelaide'),
+            gutenberg_source=Source.objects.get(name='Project Gutenberg'),
+            google_source=Source.objects.get(name='Google'),
+            kobo_source=Source.objects.get(name='Kobo'),
+            goodreads_source=goodreads_source,
+            librarything_source=librarything_source,
+            openlibrary_source=openlibrary_source,
+            skip_ol=True
+        )
 
 
 def search_or_update(title: str, author: str) -> List[Work]:
