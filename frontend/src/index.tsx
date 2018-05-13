@@ -11,8 +11,7 @@ import createHistory from 'history/createBrowserHistory'
 import axios from "axios"
 
 import {Main, BASE_URL} from './main'
-// import * as main from './main'
-import {MainState} from "./interfaces";
+import {MainState} from "./interfaces"
 
 // This module contains state and initialization code.
 
