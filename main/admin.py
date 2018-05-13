@@ -1,5 +1,3 @@
-from django.contrib import admin
-
 from django.contrib.admin import ModelAdmin, register
 
 from .models import Work, Author, Isbn, Resource, Source, WorkSource, \

@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
     "history": "^4.7.2",
@@ -24,14 +25,14 @@
     "postinstall": "npm run build"
   },
   "devDependencies": {
+    "@types/history": "^4.6.2",
     "@types/jest": "^22.2.2",
     "@types/node": "^9.6.2",
-    "@types/react-dom": "^16.0.4",
-    "typescript": "^2.8.1",
-    "@types/history": "^4.6.2",
     "@types/react-bootstrap": "^0.32.7",
+    "@types/react-dom": "^16.0.4",
     "@types/react-redux": "^5.0.15",
     "@types/react-spinkit": "^3.0.3",
-    "@types/redux-first-router": "^1.10.2"
+    "@types/redux-first-router": "^1.10.2",
+    "typescript": "^2.8.1"
   }
 }

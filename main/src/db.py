@@ -1,8 +1,7 @@
-from typing import List, Iterator, Optional
+from typing import List
 
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.postgres.search import SearchVector
 from django.db import IntegrityError
-from django.db.models import QuerySet
 
 from . import goodreads
 from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
@@ -10,9 +9,7 @@ from ..models import Work, Isbn, Author, WorkSource, Source, AdelaideWork, \
 from . import google, adelaide, gutenberg, kobo, openlibrary, librarything, util
 
 
-
 # Try to keep database modifications from APIs in this file.
-
 
 def update_db_from_gutenberg() -> None:
     """
@@ -109,12 +106,14 @@ def create_works_from_adelaide_gutenberg() -> None:
             openlibrary_source=openlibrary_source
         )
 
+        print(f"Added work: {work.title}")
+
 
 def update_sources_adelaide_gutenberg(work: Work, adelaide_: bool, source=None) -> None:
     """
     Update worksources from the University of Adelaide or Project Gutenberg,
-       using their info cached in our DB.
-       """
+    using their info cached in our DB.
+    """
     # adelaide is True if pulling from adelaide; false if from Gutenberg.
     # todo dry from search_local:
     if adelaide_:
@@ -198,19 +197,6 @@ def update_kobo_ws(work: Work, source: Source) -> None:
         )
 
 
-def update_goodreads_ws(work: Work, source: Source) -> None:
-    goodreads_id = goodreads.search(work)
-    if goodreads_id:
-        WorkSource.objects.update_or_create(
-            work=work,
-            source=source,
-            defaults={
-                'internal_id_str': str(goodreads_id),
-                'book_url': goodreads.url_from_id(goodreads_id)
-            }
-        )
-
-
 def update_openlibrary_ws(
         work: Work,
         source: Source,
@@ -285,13 +271,9 @@ def update_worksources(
     must already exist in the database.
     """
 
-    # Update workssources for Adelaide and Gutenberg by referncing their database entries.
-    if not adelaide_source:
-        adelaide_source = Source.objects.get(name='University of Adelaide')
-    if not gutenberg_source:
-        gutenberg_source = Source.objects.get(name='Project Gutenberg')
-
+    print("Updating ad")
     update_sources_adelaide_gutenberg(work, True, source=adelaide_source)
+    print("Updating Gut")
     update_sources_adelaide_gutenberg(work, False, source=gutenberg_source)
 
     # We skip searching OpenLibrary here if we just created the work from there.
@@ -307,8 +289,11 @@ def update_worksources(
     # Openlibrary.
     # update_goodreads_ws(work, source=goodreads_source)
 
+    print("Updating kobo")
     update_kobo_ws(work, source=kobo_source)
+    print("updating Google")
     update_google_ws(work, source=google_source)
+    print("Done with updates")
 
 
 def search_local(title: str, author: str) -> List[Work]:
@@ -421,11 +406,18 @@ def clean_titles() -> None:
             work.save()
 
 
-def update(title: str, author: str) -> None:
+def _update(title: str, author: str) -> None:
     """Add or update works to the database from a title/author search."""
+    print("OL query start")
     internet_results = openlibrary.search(title, author)
+    print("OL query end")
     if not internet_results:
         return
+
+    # Cache these here to prevent extra queries.
+    librarything_source = Source.objects.get(name='LibraryThing')
+    goodreads_source = Source.objects.get(name='GoodReads')
+    openlibrary_source = Source.objects.get(name='OpenLibrary')
 
     for book in internet_results:
         # todo just top author for now.
@@ -451,6 +443,7 @@ def update(title: str, author: str) -> None:
                 # 'publication_date': book.publication_date
             }
         )
+        print("Work created")
 
         for isbn in book.isbns:
             # Add the new ISBN to the database.
@@ -468,19 +461,16 @@ def update(title: str, author: str) -> None:
             except IntegrityError:
                 continue
 
-        # Cache these here to prevent extra queries.
-        librarything_source = Source.objects.get(name='LibraryThing')
-        goodreads_source = Source.objects.get(name='GoodReads')
-        openlibrary_source = Source.objects.get(name='OpenLibrary')
-
+        print("Start OL WS")
         # Update the OpenLibrary work source here, since we already queried them.
         update_openlibrary_ws(
             new_work,
             source=openlibrary_source,
             gr_source=goodreads_source,
             lt_source=librarything_source,
+            books=internet_results
         )
-
+        print("End OL WS")
         update_worksources(
             new_work,
             adelaide_source=Source.objects.get(name='University of Adelaide'),
@@ -496,13 +486,14 @@ def update(title: str, author: str) -> None:
 
 def search_or_update(title: str, author: str) -> List[Work]:
     """Try to find the work locally; if unable, Add the work to the database
-       based on searching with the Google Api."""
+       based on searching with the Openlibrary API.  This is the main endpoint
+       acessed by the view."""
     results = search_local(title, author)
     # If we found a local result, return it. If not, query the API.
     if results:
         return results
     else:
-        update(title, author)
+        _update(title, author)
         results = search_local(title, author)
         return results if results else []
 

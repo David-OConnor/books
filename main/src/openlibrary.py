@@ -44,8 +44,10 @@ def search(title: str, author: str) -> Iterator[OlBook]:
         'title': title,
         'author': author
     }
-
-    r = requests.get(URL, params=data)
+    try:
+        r = requests.get(URL, params=data)
+    except requests.exceptions.ConnectionError:
+        return
     try:
         books = r.json()
     except JSONDecodeError:
